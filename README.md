@@ -1,14 +1,15 @@
 WordPress-bb10
 ==============
 
-WordPress mobile app for BlackBerry 10 devices 
+WordPress mobile app for BlackBerry 10 devices.
 GSoC project
 
 Requirements:
 =============
 
 * BlackBerry Native SDK 
-* simulator 
+* simulator
+
 (you can find both here : https://developer.blackberry.com/native/download/)
 
 Build:
