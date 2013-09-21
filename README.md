@@ -12,8 +12,8 @@ Requirements:
 
 (you can find both here : https://developer.blackberry.com/native/download/)
 
-Build:
-======
+Build&Run:
+==========
 
 1. Launch the Native SDK
 2. On the File Menu, click Import
