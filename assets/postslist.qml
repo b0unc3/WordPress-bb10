@@ -10,11 +10,12 @@ import bb.system 1.0
 Page {
     id: post_plp
 
-    property bool post_showpage: false
+    property bool post_showpage;
     property variant post_savemodel;
 
     function post_restoreItems()
     {
+        console.log("RESTIORE IMTEMS!"	);
         if ( post_savemodel )
         {
         	post_plListView.setDataModel(null);
@@ -25,29 +26,40 @@ Page {
     }
 
     function post_loadData() {
+        console.log(" -- INF loadData()");
         if (post_plListView.dataModel) //plListView.dataModel.clear();
         	post_plListView.setDataModel(null);
 
         post_plind.start();
-        wpu.getPosts(post_showpage);
-        wpu.dataReady_getPosts.connect(post_plp.post_onDataReady);
+        console.log("loading data -> " + post_plp.post_showpage);
+        wpu.getPosts(post_plp.post_showpage);
+        if ( post_plp.post_showpage )
+        	wpu.dataReady_getPages.connect(post_plp.post_onDataReady);
+        else wpu.dataReady_getPosts.connect(post_plp.post_onDataReady);
     }
 
     function post_onDataReady(val) {
+        var d = new Date();
+
+		console.log("herer =>" + d);
         var post_pa = wpu.getRes();
 
         if (post_pa["ERROR"]) {
+            console.log(post_showpage);
             //myQmlToast.show();
             console.log("ERRORE");
             // wpu.resetRes();
         } else if (post_pa["delpost"]) {
+            console.log("delpost = " + post_showpage);
             if (post_pa["delpost"] == 1) {
+                console.log("delpost 1 = " + post_showpage);
                 post_delDialog.cancel();
                 post_ci_pl.close();
                 post_plp.post_loadData();
             } else console.log("delete fail");
 
         } else {
+            console.log("POSTSLIST else - " + post_showpage);
             post_plListView.setDataModel(wpu.setModel("post_mystr"));
             post_plind.stop();
         }
@@ -74,12 +86,6 @@ Page {
         CustomIndicator {
             id: post_ci_pl
         },
-        SystemProgressToast { //<--to be removed?
-            id: post_delprog
-            progress: -1
-            body: qsTr("Deleting post, please wait")
-            state: SystemUiProgressState.Active
-        },
         SystemDialog {
             property string ptitle
             property string pid
@@ -94,12 +100,13 @@ Page {
             cancelButton.enabled: true
             onFinished: {
                 var x = result;
-                console.log(post_delDialog.error);
                 if (x == SystemUiResult.ConfirmButtonSelection) {
                     post_ci_pl.body = "Deleting post \"" + ptitle + "\" \nPlease wait...";
                     post_ci_pl.open();
-                    wpu.deletePost(pid);
-                    wpu.dataReady_delPost.connect(post_plp.post_onDataReady);
+                    wpu.deletePost(post_plp.post_showpage,pid);
+                    if ( post_plp.post_showpage )
+                    	wpu.dataReady_delPage.connect(post_plp.post_onDataReady);
+                    else wpu.dataReady_delPost.connect(post_plp.post_onDataReady);
                 } else if (x == SystemUiResult.CancelButtonSelection) {
                     console.log("cancel");
                 }

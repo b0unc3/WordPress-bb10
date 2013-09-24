@@ -6,11 +6,13 @@ Page {
     property string post_id;
     property variant pinfos
 
-    property bool post_showpage: false
+    property bool post_showpage;
     
     onPost_idChanged: {
-        wpu.getPost(post_id);
-        wpu.dataReady_getPost.connect(ep.ep_onDataReady);
+        wpu.getPost(ep.post_showpage, post_id);
+        if ( ep.post_showpage )
+        	wpu.dataReady_getPage.connect(ep.ep_onDataReady);
+        else wpu.dataReady_getPost.connect(ep.ep_onDataReady);
     }
     
     function ep_onDataReady() {
@@ -49,8 +51,10 @@ Page {
                 {
                                     ci_ep.body = "Editing post\nPlease wait...";
                                     ci_ep.open();
-                                    wpu.editPost(ep.post_id,ptitle.text,pcontent.text,pstate.selectedValue, pformat.selectedValue);
-                                    wpu.dataReady_editPost.connect(ep.ep_onDataReady);
+                                    wpu.editPost(ep.post_showpage, ep.post_id,ptitle.text,pcontent.text,pstate.selectedValue, pformat.selectedValue);
+                                    if ( ep.post_showpage )
+                                    	wpu.dataReady_editPage.connect(ep.ep_onDataReady);
+                                    else wpu.dataReady_editPost.connect(ep.ep_onDataReady);
                 }
             }
         }
@@ -91,7 +95,7 @@ Page {
             
             TextField {
                 id: ptitle
-                text: pinfos.post_title
+                text: (pinfos) ? pinfos.post_title : ""
             }
             TextArea {
                 id: pcontent

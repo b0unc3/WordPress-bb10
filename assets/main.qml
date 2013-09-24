@@ -34,6 +34,10 @@ TabbedPane {
             source: "postslist.qml"
         },
         ComponentDefinition {
+            id: pagesList
+            source: "postslist.qml"
+        },
+        ComponentDefinition {
             id: loginPage
             source: "Login.qml"
         },
@@ -44,10 +48,6 @@ TabbedPane {
         ComponentDefinition {
             id: commentsList
             source: "commentslist.qml"
-        },
-        ComponentDefinition {
-            id: pagesList
-            source: "pageslist.qml"
         }
     ]
     
@@ -61,7 +61,8 @@ TabbedPane {
         	tabbedPane.peekEnabled = true;
 
         	var newPage = postsList.createObject();
-        	navpostpane.push(newPage);
+        	newPage.post_showpage = false;
+            navpostpane.push(newPage);
         	newPage.post_loadData();
         } else console.log("no info registered");
     }
@@ -94,6 +95,7 @@ TabbedPane {
                 tabbedPane.peekEnabled = true;
 
                 var newPage = postsList.createObject();
+                newPage.post_showpage = false;
                 navpostpane.push(newPage);
                 newPage.post_loadData();
 
@@ -107,8 +109,11 @@ TabbedPane {
 
         NavigationPane {
             id: navpostpane
+            
+            
 
             onPopTransitionEnded: {
+                
                 if ( page )
                 	page.destroy();
                 	
@@ -116,9 +121,10 @@ TabbedPane {
                     console.log("first page is here ");
                     navpostpane.firstPage.post_restoreItems()
                 } else {
-                    var p = postsList.createObject();
-                    navpostpane.push(p);
-                    p.post_loadData();
+                    var post_ = postsList.createObject();
+                    post_.post_showpage = false;
+                    navpostpane.push(post_);
+                    post_.post_loadData();
 
                 }
             }
@@ -126,18 +132,27 @@ TabbedPane {
         }
 
         onTriggered: {
+            if (navpagepane.count() > 0) {
+                for (var i = 0; i < navpagepane.count(); i ++) 
+                	navpagepane.remove(navpostpane.at(i));
+            }
+            if ( navpagepane.top ) {
+                navpagepane.remove(navpagepane.top);
+            }
             if (navpostpane.count() == 0) {
-                var newPage = postsList.createObject();
-                navpostpane.push(newPage);
-                newPage.post_loadData();
+                var newPage_post_ = postsList.createObject();
+                newPage_post_.post_showpage = false;
+                navpostpane.push(newPage_post_);
+                newPage_post_.post_loadData();
             } else { 
                 if ( navpostpane.firstPage )
                 {
                 	navpostpane.firstPage.post_loadData();
                 } else {
-                	var p = postsList.createObject();
-                	navpostpane.push(p);
-                	p.post_loadData();
+                	var post_p = postsList.createObject();
+                	navpostpane.push(post_p);
+                    post_p.post_showpage = false;
+                    post_p.post_loadData();
                 }
             }
             
@@ -168,6 +183,14 @@ TabbedPane {
         }
 
         onTriggered: {
+            if (navpostpane.count() > 0) {
+                for (var i = 0; i < navpostpane.count(); i ++) 
+                	navpostpane.remove(navpostpane.at(i));
+            }
+            if ( navpostpane.top )
+            {
+             	navpostpane.remove(navpostpane.top);
+            }
             if ( navcommentspane.count() == 0 )
             {
             	var newPage = commentsList.createObject();
@@ -187,35 +210,49 @@ TabbedPane {
             id: navpagepane
 
             onPopTransitionEnded: {
-                if (page) page.destroy();
+                if (page) 
+                	page.destroy();
 
                 if (navpagepane.firstPage) {
                     navpagepane.firstPage.post_restoreItems()
                 } else {
-                    var p = postsList.createObject();
-                    p.post_showpage = true;
-                    navpagepane.push(p);
-                    p.post_loadData();
+                    var page_p = pagesList.createObject();
+                    page_p.post_showpage = true;
+                    navpagepane.push(page_p);
+                    page_p.post_loadData();
                 }
             }
 
         }
 
         onTriggered: {
+            if ( navpostpane.count() > 0)
+            {
+                console.log("removing pages")
+                for ( var i=0; i<navpostpane.count(); i++ )
+                {
+                    console.log("removing page at " + i);
+                    navpostpane.remove(navpostpane.at(i));
+                }
+                	
+            }
+            if (navpostpane.top) {
+                navpostpane.remove(navpostpane.top);
+            }
             if (navpagepane.count() == 0) {
-                var newPage = postsList.createObject();
-                newPage.post_showpage = true;
-                navpagepane.push(newPage);
-                newPage.post_loadData();
+                var page_newPage = pagesList.createObject();
+                page_newPage.post_showpage = true;
+                navpagepane.push(page_newPage);
+                page_newPage.post_loadData();
             } else { //}if ( navpostpane.firstPage ){
                 if (navpagepane.firstPage) {
                     navpagepane.firstPage.post_loadData();
                 } else {
-                    var p = postsList.createObject();
-                    p.post_showpage = true;
-                    navpagepane.push(p);
+                    var page_p2 = pagesList.createObject();
+                    page_p2.post_showpage = true;
+                    navpagepane.push(page_p2);
                     //p.restoreItems()
-                    p.post_loadData();
+                    page_p2.post_loadData();
                 }
             }
 

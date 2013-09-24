@@ -14,12 +14,14 @@ Page {
     property alias sp_apostid: sp.sp_postid
     property variant sp_myObj
     
-    property bool post_show_page: false
+    property bool post_show_page;
     property bool show_img: false
     
     onSp_postidChanged: {
-        wpu.getPost(sp.sp_postid);
-        wpu.dataReady_getPost.connect(sp.sp_onDataReady);
+        wpu.getPost(sp.post_show_page, sp.sp_postid);
+        if ( sp.post_show_page )
+        	wpu.dataReady_getPage.connect(sp.sp_onDataReady);
+        else wpu.dataReady_getPost.connect(sp.sp_onDataReady);
     }
     
     function sp_onDataReady() {

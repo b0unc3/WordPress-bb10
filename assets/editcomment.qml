@@ -100,10 +100,11 @@ Page {
                 text: (ec_cinfos) ? ec_cinfos.author_url : ""
             }
             Label {
-                text: qsTr("content")
+                text: qsTr("Content")
             }
             TextArea {
                 id: ccontent
+                minHeight: 150
                 preferredHeight: 200
                 text: (ec_cinfos) ? ec_cinfos.content : ""
             }
