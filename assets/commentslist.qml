@@ -205,7 +205,6 @@ Page {
                             
                             function getDescription(p,d)
                             {   
-                                console.log("in p = " +p);
                                 if ( p != "0" )
                                 {   
                                  	if (comment_csli.ListItem.view.commentsbyid["" + p]) 

@@ -15,7 +15,6 @@ Page {
 
     function post_restoreItems()
     {
-        console.log("RESTIORE IMTEMS!"	);
         if ( post_savemodel )
         {
         	post_plListView.setDataModel(null);
@@ -26,12 +25,10 @@ Page {
     }
 
     function post_loadData() {
-        console.log(" -- INF loadData()");
         if (post_plListView.dataModel) //plListView.dataModel.clear();
         	post_plListView.setDataModel(null);
 
         post_plind.start();
-        console.log("loading data -> " + post_plp.post_showpage);
         wpu.getPosts(post_plp.post_showpage);
         if ( post_plp.post_showpage )
         	wpu.dataReady_getPages.connect(post_plp.post_onDataReady);
@@ -41,25 +38,20 @@ Page {
     function post_onDataReady(val) {
         var d = new Date();
 
-		console.log("herer =>" + d);
         var post_pa = wpu.getRes();
 
         if (post_pa["ERROR"]) {
-            console.log(post_showpage);
             //myQmlToast.show();
             console.log("ERRORE");
             // wpu.resetRes();
         } else if (post_pa["delpost"]) {
-            console.log("delpost = " + post_showpage);
             if (post_pa["delpost"] == 1) {
-                console.log("delpost 1 = " + post_showpage);
                 post_delDialog.cancel();
                 post_ci_pl.close();
                 post_plp.post_loadData();
             } else console.log("delete fail");
 
         } else {
-            console.log("POSTSLIST else - " + post_showpage);
             post_plListView.setDataModel(wpu.setModel("post_mystr"));
             post_plind.stop();
         }

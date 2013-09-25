@@ -28,9 +28,8 @@ Page {
         //aspe`
         sp_myObj = wpu.getRes();
         if ( sp_myObj.post_content.indexOf("img") != -1 )
-        	show_img = true;
-        	
-        
+            show_img = true;
+            
         spind.stop();
         
         cnt.text = getLabelText();
@@ -94,6 +93,7 @@ Page {
 
             ScrollView {
                 id: scrollView
+                visible: !show_img
 
                 topMargin: 30
                 bottomMargin: 30
@@ -126,6 +126,7 @@ Page {
             }
             ScrollView {
                 id: scrollView_wv
+                visible: show_img
 
                 topMargin: 30
                 bottomMargin: 30

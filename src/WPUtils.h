@@ -65,16 +65,16 @@ public:
 	Q_INVOKABLE void setBlogsInfo(QString,QString);
 	Q_INVOKABLE void getComments();
 	Q_INVOKABLE void getPages();
-	Q_INVOKABLE void getPost(QString);
+	Q_INVOKABLE void getPost(bool, QString);
 	Q_INVOKABLE void getCategories();
 	Q_INVOKABLE void makePost(bool, QString, QVariant, QVariant, QVariant);
-	Q_INVOKABLE void deletePost(QString);
+	Q_INVOKABLE void deletePost(bool, QString);
 	Q_INVOKABLE void uploadFile(QString);
 	Q_INVOKABLE void editComment(QString, QString, QString, QString, QString, QString);
 	Q_INVOKABLE void deleteComment(QString);
 	Q_INVOKABLE void newComment(QString, QString, QString);
 	Q_INVOKABLE void getComment(QString);
-	Q_INVOKABLE void editPost(QString, QString, QString, QString, QString);
+	Q_INVOKABLE void editPost(bool, QString, QString, QString, QString, QString);
 
 	Q_INVOKABLE bb::cascades::GroupDataModel *setModel(QByteArray); /* should be getModel, since the model is setted in another func */
 	QString searchEndPoint(QString);
@@ -82,7 +82,7 @@ public:
 	/* maybe temporary */
 	Q_INVOKABLE QMap<QString, QVariant> getRes() { return res; }
 	Q_INVOKABLE void resetRes() { res.clear(); }
-	Q_INVOKABLE void setUsername(QString u) { qDebug() << "&&&&&& ==== USERNAME SETTED TO => " << u; _username = u; }
+	Q_INVOKABLE void setUsername(QString u) { _username = u; }
 	Q_INVOKABLE void setPassword(QString p) { _password = p; }
 
 	Q_INVOKABLE void setPosition(int p) { _position = p; }
@@ -134,6 +134,7 @@ private:
 	void dataReady_delComment();
 
 	void dataReady_getPages();
+	void dataReady_getPage();
 	void dataReady_viewPage();
 	void dataReady_editPage();
 	void dataReady_delPage();
@@ -142,9 +143,9 @@ private:
 	void blogsReady(QHash<QString, QString>);
 
 private slots:
-void replyFinished(QNetworkReply*);
-void repFinished(QNetworkReply*);
-void checkForPingback(QNetworkReply*);
+	void replyFinished(QNetworkReply*);
+	void repFinished(QNetworkReply*);
+	void checkForPingback(QNetworkReply*);
 
 };
 

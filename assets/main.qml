@@ -16,7 +16,7 @@ TabbedPane {
         actions: [
             ActionItem {
                 title: qsTr("Change blog");
-                enabled: wpu.blogsInfo(); 
+                enabled: !wpu.blogsInfo(); 
                 
                 onTriggered: {
                     bsdo.open();
@@ -118,7 +118,6 @@ TabbedPane {
                 	page.destroy();
                 	
                 if (navpostpane.firstPage) {
-                    console.log("first page is here ");
                     navpostpane.firstPage.post_restoreItems()
                 } else {
                     var post_ = postsList.createObject();
@@ -228,13 +227,8 @@ TabbedPane {
         onTriggered: {
             if ( navpostpane.count() > 0)
             {
-                console.log("removing pages")
                 for ( var i=0; i<navpostpane.count(); i++ )
-                {
-                    console.log("removing page at " + i);
                     navpostpane.remove(navpostpane.at(i));
-                }
-                	
             }
             if (navpostpane.top) {
                 navpostpane.remove(navpostpane.top);

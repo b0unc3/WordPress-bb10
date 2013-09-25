@@ -44,17 +44,12 @@ Page {
             ActionBar.placement: ActionBarPlacement.OnBar
             
             onTriggered: {
-                console.log("1) saving on = " + mp_mpp.post_showpage);
                 mp_ci.body = "Creating the new " +((mp_mpp.post_showpage) ? "page" : "post") + "\nplaease wait...";
-                console.log("2) saving on = " + mp_mpp.post_showpage);
                 mp_ci.open();
-                console.log("3) saving on = " + mp_mpp.post_showpage);
                 wpu.makePost(mp_mpp.post_showpage, posttitle.text, postcontent.text.trim(), ((posttype.selectedValue) ? posttype.selectedValue : "" ) , poststatus.selectedValue);
-                console.log("4) saving on = " + mp_mpp.post_showpage);
                 if ( mp_mpp.post_showpage )
                 	 wpu.dataReady_newPage.connect(mp_mpp.mp_onDataReady);
                 else wpu.dataReady_newPost.connect(mp_mpp.mp_onDataReady);
-                console.log("5) saving on = " + mp_mpp.post_showpage);
             }
         },
         ActionItem {

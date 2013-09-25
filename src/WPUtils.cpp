@@ -54,6 +54,9 @@ void WPUtils::getRegisteredData()
 	_blogid = bis.at(0);
 	_endpoint = xrs.at(0);
 
+	int i=0;
+	for ( i=0; i<bis.size(); i++)
+		_blogs.insertMulti(bis.at(i), xrs.at(i));
 
 }
 
@@ -407,7 +410,7 @@ void WPUtils::editComment(QString comment_id, QString status, QString content, Q
 	manager->post(request,_xml);
 }
 
-void WPUtils::editPost(QString pid, QString title, QString content, QString status, QString format)
+void WPUtils::editPost(bool pages, QString pid, QString title, QString content, QString status, QString format)
 {
 	_xml.clear();
 	QXmlStreamWriter sw(&_xml);
@@ -470,7 +473,9 @@ void WPUtils::editPost(QString pid, QString title, QString content, QString stat
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("editPost");
+	if ( pages )
+		manager->setObjectName("editPage");
+	else manager->setObjectName("editPost");
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -486,7 +491,7 @@ void WPUtils::editPost(QString pid, QString title, QString content, QString stat
 	manager->post(request,_xml);
 }
 
-void WPUtils::deletePost(QString post_id)
+void WPUtils::deletePost(bool pages, QString post_id)
 {
 	_xml.clear();
 	QXmlStreamWriter sw(&_xml);
@@ -518,7 +523,9 @@ void WPUtils::deletePost(QString post_id)
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("delPost");
+	if ( pages )
+		manager->setObjectName("delPage");
+	else manager->setObjectName("delPost");
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -634,7 +641,9 @@ void WPUtils::makePost(bool pages, QString title, QVariant cnt, QVariant type, Q
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("newPost");
+	if ( pages )
+		manager->setObjectName("newPage");
+	else manager->setObjectName("newPost");
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -785,7 +794,7 @@ void WPUtils::getCategories()
 	manager->post(request,_xml);
 }
 
-void WPUtils::getPost(QString pid)
+void WPUtils::getPost(bool pages, QString pid)
 {
 
 	_xml.clear();
@@ -845,7 +854,9 @@ void WPUtils::getPost(QString pid)
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("getPost");
+	if ( pages )
+		manager->setObjectName("getPage");
+	else manager->setObjectName("getPost");
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -947,7 +958,9 @@ void WPUtils::getPosts(bool pages)
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("getPosts");
+	if ( pages )
+		manager->setObjectName("getPages");
+	else manager->setObjectName("getPosts");
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -977,6 +990,9 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 
 	if ( !res.isEmpty() )
 		res.clear();
+
+	if (!_res_bck.isEmpty() )
+		_res_bck.clear();
 
 
 	QByteArray ret = rep->readAll();
@@ -1040,7 +1056,7 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 				res.clear();
 			} else if ( xml.name().toString() == "int" )
 			{
-				/* newpost workaround */
+				/* newcomment workaround */
 				token = xml.readNext();
 				res["newcommentid"] = xml.text().toString();
 				model->insert(res);
