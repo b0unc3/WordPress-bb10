@@ -11,13 +11,21 @@ const QString WPUtils::dbName = "wpbb10.db";
 
 WPUtils::WPUtils(QObject *parent)
 {
+	QDir home = QDir::home();
+	QFile file(home.absoluteFilePath(dbName));
+	if (!file.exists() && file.open(QIODevice::ReadWrite) )
+	{
+		SqlDataAccess sda(home.absoluteFilePath(dbName));
+		sda.execute("CREATE TABLE userinfo(blogid TEXT, id INTEGER PRIMARY KEY, username TEXT, password BLOB, xmlrpc BLOB);");
+	}
 	_position = 0; // <<== WTF?
 	_info_registered = true;
 	_db = QSqlDatabase::addDatabase("QSQLITE");
-	_db.setDatabaseName(QDir::currentPath() + "/app/native/assets/"+ dbName);
+	_db.setDatabaseName(home.absoluteFilePath(dbName));
 	if (!_db.open())
 	{
-			_info_registered = false;
+		qDebug() << "db not opened!";
+		_info_registered = false;
 			/* FIXIT */
 	}
 	if (!info_registered())
@@ -62,7 +70,9 @@ void WPUtils::getRegisteredData()
 
 bool WPUtils::info_registered()
 {
-	SqlDataAccess sda(QDir::currentPath() + "/app/native/assets/wpbb10.db");
+	QDir home = QDir::home();
+	QFile file(home.absoluteFilePath(dbName));
+	SqlDataAccess sda(home.absoluteFilePath(dbName));//QDir::currentPath() + "/data/wpbb10.db");
 	QVariant list = sda.execute("SELECT * FROM userinfo");
 	return (list.toList().size() > 0);
 }
