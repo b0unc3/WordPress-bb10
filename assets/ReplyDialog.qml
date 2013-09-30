@@ -39,13 +39,13 @@ Dialog {
             
             Label {
                 horizontalAlignment: HorizontalAlignment.Left
-                text: "Leave a reply"
+                text: qsTr("Leave a reply")
             }
             
             
             Button {
                 horizontalAlignment: HorizontalAlignment.Right
-                text: "Cancel reply"
+                text: qsTr("Cancel reply")
                 
                 onClicked: {
                     close();
@@ -68,7 +68,7 @@ Dialog {
             id: pc
             horizontalAlignment: HorizontalAlignment.Right
             verticalAlignment: VerticalAlignment.Bottom
-            text: "Post Comment"
+            text: qsTr("Post Comment")
             
             
             onClicked: {

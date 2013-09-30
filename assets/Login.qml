@@ -87,38 +87,38 @@ Page {
                 bottomPadding: 50
                 
                 Label {
-                    text: "Username"
+                    text: qsTr("Username")
                 }
                 
                 TextField {
                     id: usr
                     clearButtonVisible: true
-                    hintText: "username"
+                    hintText: qsTr("username")
                     
                     input.flags: TextInputFlag.AutoCapitalizationOff
                 }
                 
                 Label {
                     topMargin: 50
-                    text: "Password"
+                    text: qsTr("Password")
                 }
                 
                 TextField {
                     id: pwd
                     inputMode: TextFieldInputMode.Password
                     
-                    hintText: "YouRpAsSwOrD"
+                    hintText: qsTr("YouRpAsSwOrD")
                 }
                 
                 Label {
                     topMargin: 50
-                    text: "Blog Address"
+                    text: qsTr("Blog Address")
                 }
                 
                 TextField {
                     id: blgd
                     
-                    hintText: "leave empty if unsure"
+                    hintText: qsTr("leave empty if unsure")
                     input.flags: TextInputFlag.AutoCapitalizationOff
 
                 }
@@ -133,7 +133,7 @@ Page {
                 //bottomPadding: 25//50
                 Button {
                     id: si
-                    text: "Sign In"
+                    text: qsTr("Sign In")
                     
                     onClicked: {
                         if (usr.text && pwd.text) {

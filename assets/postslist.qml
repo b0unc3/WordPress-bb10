@@ -59,7 +59,7 @@ Page {
     }
 
     titleBar: TitleBar {
-        title: (!post_plp.post_showpage ) ? "Posts" : "Pages"
+        title: (!post_plp.post_showpage ) ? qsTr("Posts") : qsTr("Pages")
     }
 
     attachedObjects: [
@@ -93,7 +93,7 @@ Page {
             onFinished: {
                 var x = result;
                 if (x == SystemUiResult.ConfirmButtonSelection) {
-                    post_ci_pl.body = "Deleting post \"" + ptitle + "\" \nPlease wait...";
+                    post_ci_pl.body = qsTr("Deleting post \"" + ptitle + "\" \nPlease wait...");
                     post_ci_pl.open();
                     wpu.deletePost(post_plp.post_showpage,pid);
                     if ( post_plp.post_showpage )
@@ -108,7 +108,7 @@ Page {
 
     actions: [
         ActionItem {
-            title: "New"
+            title: qsTr("New")
             imageSource: "asset:///images/add.png"
             ActionBar.placement: ActionBarPlacement.InOverflow
 
@@ -122,7 +122,7 @@ Page {
             }
         },
         ActionItem {
-            title: "Refresh"
+            title: qsTr("Refresh")
             imageSource: "asset:///images/refresh.png"
 
             ActionBar.placement: ActionBarPlacement.InOverflow
@@ -164,7 +164,7 @@ Page {
                             id: post_sli
                             property variant internalWpu
                             textFormat: TextFormat.Html
-                            title: ListItemData.post_title
+                            title: qsTr(ListItemData.post_title)
                             description: ListItemData.date //post_date
                             status: ListItemData.post_status
                             imageSpaceReserved: false

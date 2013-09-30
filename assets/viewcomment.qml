@@ -50,7 +50,7 @@ Page {
             
             Label {
                 id: auth
-                text: ( vc_infos ) ? vc_infos.author : ""
+                text: ( vc_infos ) ? qsTr(vc_infos.author) : ""
                 
                 textStyle.base: SystemDefaults.TextStyles.BodyText
             }
@@ -76,7 +76,7 @@ Page {
             }
             Label {
                 id: pt
-                text: ( vc_infos ) ? vc_infos.post_title : ""
+                text: ( vc_infos ) ? qsTr(vc_infos.post_title) : ""
                 
                 textFormat: TextFormat.Html
                 textStyle.base: SystemDefaults.TextStyles.TitleText
@@ -87,7 +87,7 @@ Page {
             }
             Label {
                 id: cont
-                text: ( vc_infos ) ? vc_infos.content : ""
+                text: ( vc_infos ) ? qsTr(vc_infos.content) : ""
                 multiline: true
                 
                 textFormat: TextFormat.Html

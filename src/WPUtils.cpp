@@ -82,6 +82,16 @@ int WPUtils::getPosition()
 	return _position;
 }
 
+void WPUtils::setCurrentBlog(QString b, QString u)
+{
+	if ( !b.isEmpty() && !u.isEmpty() )
+	{
+		qDebug() << "setting blogid to " << b << " and endpoint = " << u;
+		_blogid = b;
+		_endpoint =u;
+	} else qDebug() << "empty!!";
+}
+
 QMap<QString, QVariant> WPUtils::getBI()
 {
 	return _blogs;

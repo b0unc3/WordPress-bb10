@@ -88,6 +88,7 @@ public:
 	Q_INVOKABLE void setPosition(int p) { _position = p; }
 	Q_INVOKABLE bool blogsInfo();
 	Q_INVOKABLE void getBlogsInfo();
+	Q_INVOKABLE void setCurrentBlog(QString, QString);
 	Q_INVOKABLE bool info_registered();
 	Q_INVOKABLE QMap<QString, QVariant> getBI();
 

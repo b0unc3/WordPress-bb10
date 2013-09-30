@@ -11,13 +11,14 @@ Dialog {
     
     function getRegisteredBlogs()
     {
+        bdd.removeAll();
         var val = wpu.getBI();
         for (var event in val) {
             var dataCopy = val[event]
 
 	    var option = optionControlDefinition.createObject();
-            option.value = event;
-            option.text = val[event];
+            option.value = qsTr(event);
+            option.text = qsTr(val[event]);
             bdd.add(option);
         }
     }
@@ -50,6 +51,8 @@ Dialog {
             horizontalAlignment: HorizontalAlignment.Center
             text: qsTr("Done")
             onClicked: {
+                /* set the new blog */
+                wpu.setCurrentBlog(bdd.selectedOption.value, bdd.selectedOption.text);
                 bsdo.close();
             }
         }

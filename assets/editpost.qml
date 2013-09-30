@@ -42,14 +42,14 @@ Page {
     
     actions: [
         ActionItem {
-            title: "Edit"
+            title: qsTr("Edit")
             imageSource: "asset:///images/save.png"
             ActionBar.placement: ActionBarPlacement.OnBar
             
             onTriggered: {
                 if ( ptitle.text != "" && pcontent.text != "" && pstate.selectedValue != "" && pformat.selectedValue != "" )
                 {
-                                    ci_ep.body = "Editing post\nPlease wait...";
+                                    ci_ep.body = qsTr("Editing post\nPlease wait...");
                                     ci_ep.open();
                                     wpu.editPost(ep.post_showpage, ep.post_id,ptitle.text,pcontent.text,pstate.selectedValue, pformat.selectedValue);
                                     if ( ep.post_showpage )
@@ -95,12 +95,12 @@ Page {
             
             TextField {
                 id: ptitle
-                text: (pinfos) ? pinfos.post_title : ""
+                text: (pinfos) ? qsTr(pinfos.post_title) : ""
             }
             TextArea {
                 id: pcontent
                 preferredHeight: 300
-                text: (pinfos) ? pinfos.post_content : ""
+                text: (pinfos) ? qsTr(pinfos.post_content) : ""
             }
             /*
              * ***FIXME****
@@ -132,7 +132,7 @@ Page {
             
             DropDown {
                 id: pformat
-                title: "Type"
+                title: qsTr("Type")
                 visible: !post_showpage
                 selectedIndex: -1
                 Option {

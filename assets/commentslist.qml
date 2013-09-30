@@ -56,12 +56,12 @@ Page {
     }
     
     titleBar: TitleBar {
-        title: "Comments"
+        title: qsTr("Comments")
     }
 
     actions: [
         ActionItem {
-            title: "Refresh"
+            title: qsTr("Refresh")
             imageSource: "asset:///images/refresh.png"
 
             ActionBar.placement: ActionBarPlacement.InOverflow
@@ -103,7 +103,7 @@ Page {
             onFinished: {
                 var x = result;
                 if (x == SystemUiResult.ConfirmButtonSelection) {
-                    comment_delprog.body = "Deleting comment\nPlease wait...";
+                    comment_delprog.body = qsTr("Deleting comment\nPlease wait...");
                     comment_delprog.open();
                     wpu.deleteComment(cid);
                     wpu.dataReady_delComment.connect(comment_cp.comment_onDataReady);
@@ -224,7 +224,7 @@ Page {
                             }
                             
                             textFormat: TextFormat.Html
-                            title: ListItemData.content
+                            title: qsTr(ListItemData.content)
                             description: getDescription(ListItemData.parent, ListItemData.author)
                             status: getStatus(ListItemData.status) // + "\n" + ListItemData.date //_created_gmt
                             imageSpaceReserved: false
@@ -235,7 +235,7 @@ Page {
                                 ActionSet {
                                     //title: ListItemData.title
                                     ActionItem {
-                                        title: "Approve";
+                                        title: qsTr("Approve");
                                         imageSource: "asset:///images/approve.png"
                                         enabled: current_status
                                         
@@ -246,7 +246,7 @@ Page {
                                         }
                                     }
                                     ActionItem {
-                                        title: "Unapprove"
+                                        title: qsTr("Unapprove")
                                         enabled: !current_status //ListItemData.status == "approve"
                                         imageSource: "asset:///images/unapprove.png"
 
@@ -255,7 +255,7 @@ Page {
                                         }
                                     }
                                     ActionItem {
-                                        title: "Reply"
+                                        title: qsTr("Reply")
                                         imageSource: "asset:///images/reply.png"
                                         
                                         onTriggered: {
@@ -263,7 +263,7 @@ Page {
                                         }
                                     }
                                     ActionItem {
-                                        title: "Edit"
+                                        title: qsTr("Edit")
                                         imageSource: "asset:///images/edit.png"
                                         onTriggered: {
                                             comment_csli.ListItem.view.goEdit(ListItemData.comment_id);
@@ -271,7 +271,7 @@ Page {
                                         }
                                     }
                                     ActionItem {
-                                        title: "Spam"
+                                        title: qsTr("Spam")
                                         imageSource: "asset:///images/spam.png"
                                         
                                         onTriggered: {
@@ -279,7 +279,7 @@ Page {
                                         }
                                     }
                                     DeleteActionItem {
-                                        title: "Trash"
+                                        title: qsTr("Trash")
                                         
                                         onTriggered: {
                                             comment_csli.ListItem.view.delComment(ListItemData.comment_id);

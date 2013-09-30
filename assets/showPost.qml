@@ -63,7 +63,7 @@ Page {
     
     
     titleBar: TitleBar {
-        title: (sp_myObj) ? sp_myObj.post_title : ""
+        title: (sp_myObj) ? qsTr(sp_myObj.post_title) : ""
     }
     content: Container {
         layout: DockLayout { }

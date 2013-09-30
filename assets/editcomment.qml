@@ -31,7 +31,7 @@ Page {
     
     actions: [
         ActionItem {
-            title: "Edit"
+            title: qsTr("Edit")
             imageSource: "asset:///images/save.png"
             ActionBar.placement: ActionBarPlacement.OnBar
             
@@ -40,7 +40,7 @@ Page {
                 //crude sanity check
                 if ( auth.text != "" && authmail.text !="" && authurl.text != "" && ccontent.text !="" && cstate.selectedValue != "" )
                 {
-                    ec_ci.body = "Making changes\nPlease wait...";
+                    ec_ci.body = qsTr("Making changes\nPlease wait...");
                     ec_ci.open();
                     wpu.editComment(ec_comment_id, cstate.selectedValue, ccontent.text, auth.text, authmail.text, authurl.text);
                     wpu.dataReady_editComment.connect(ecp.ec_onDataReady);
@@ -83,21 +83,21 @@ Page {
             }
             TextField {
                 id: auth
-                text: (ec_cinfos) ? ec_cinfos.author : ""
+                text: (ec_cinfos) ? qsTr(ec_cinfos.author) : ""
             }
             Label {
                 text: qsTr("Author e-mail")
             }
             TextField {
                 id: authmail
-                text: (ec_cinfos) ? ec_cinfos.author_email : ""
+                text: (ec_cinfos) ? qsTr(ec_cinfos.author_email) : ""
             }
             Label {
                 text: qsTr("Author url")
             }
             TextField {
                 id: authurl
-                text: (ec_cinfos) ? ec_cinfos.author_url : ""
+                text: (ec_cinfos) ? qsTr(ec_cinfos.author_url) : ""
             }
             Label {
                 text: qsTr("Content")
@@ -106,7 +106,7 @@ Page {
                 id: ccontent
                 minHeight: 150
                 preferredHeight: 200
-                text: (ec_cinfos) ? ec_cinfos.content : ""
+                text: (ec_cinfos) ? qsTr(ec_cinfos.content) : ""
             }
             Divider {
             
