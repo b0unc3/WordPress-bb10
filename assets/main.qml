@@ -11,13 +11,16 @@ TabbedPane {
     id: tabbedPane
     showTabsOnActionBar: false
     peekEnabled: false
+    
+    property alias mbs: navigationPane.mb
 
     Menu.definition: MenuDefinition {
         actions: [
             ActionItem {
+                id: cb
                 title: qsTr("Change blog");
-                enabled: !wpu.blogsInfo(); 
-                
+                enabled: mbs || !wpu.blogsInfo()
+
                 onTriggered: {
                     bsdo.open();
                 }
@@ -72,6 +75,7 @@ TabbedPane {
             id: navigationPane
             peekEnabled: false
             backButtonsVisible: false
+            property bool mb: false;
             
             onCreationCompleted: {
                 var page = loginPage.createObject();

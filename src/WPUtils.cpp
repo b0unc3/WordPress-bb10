@@ -64,7 +64,14 @@ void WPUtils::getRegisteredData()
 
 	int i=0;
 	for ( i=0; i<bis.size(); i++)
-		_blogs.insertMulti(bis.at(i), xrs.at(i));
+	{
+		_blogs.insertMulti(bis.at(i).trimmed(), xrs.at(i).trimmed());
+
+		_blogid = bis.at(i).trimmed(); //_blogs.values("blogid")[_position];
+		_endpoint = xrs.at(i).trimmed();//_blogs.values("burl")[_position];
+		//void WPUtils::setBlogsInfo(QString bid, QString burl)
+
+	}
 
 }
 
@@ -86,10 +93,9 @@ void WPUtils::setCurrentBlog(QString b, QString u)
 {
 	if ( !b.isEmpty() && !u.isEmpty() )
 	{
-		qDebug() << "setting blogid to " << b << " and endpoint = " << u;
-		_blogid = b;
-		_endpoint =u;
-	} else qDebug() << "empty!!";
+		_blogid = b.trimmed();
+		_endpoint =u.trimmed();
+	}
 }
 
 QMap<QString, QVariant> WPUtils::getBI()
@@ -132,9 +138,10 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 		query.bindValue(":xmlrpc", _endpoint);
 		query.exec();
 	} else {
-		query.prepare("UPDATE table userinfo set blogid=:blogid and xmlrpc=:xmlrpc");
+		query.prepare("UPDATE userinfo set blogid=:blogid , xmlrpc=:xmlrpc");
 		query.bindValue(":blogid", totbid);
 		query.bindValue(":xmlrpc", totburl);
+		QSqlError e = query.lastError();
 		query.exec();
 	}
 }
@@ -146,7 +153,6 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 
 void WPUtils::uploadFile(QString furl)
 {
-
 	QString workingDir = QDir::currentPath();
 
 	QString fn = furl;
@@ -619,6 +625,7 @@ void WPUtils::makePost(bool pages, QString title, QVariant cnt, QVariant type, Q
 	pd.replace(">","&gt;");//#62;");
 	pd.replace("\"","&quot;");//#34;");
 	 */
+
 	QXmlStreamWriter sw(&_xml);
 	sw.setAutoFormatting(true);
 	sw.writeStartDocument();
@@ -1016,6 +1023,7 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 
 
 	QByteArray ret = rep->readAll();
+
 	if ( !ret.isEmpty() )
 		qDebug() << "reading " << ret; //rep->readAll();
 	else qDebug() << "ret empty -> error handling /*TODO*/";

@@ -1,4 +1,5 @@
 import bb.cascades 1.0
+import bb.cascades.pickers 1.0
 
 Page {
     id: ep
@@ -28,6 +29,9 @@ Page {
                 navpagepane.pop();
                 navpagepane.firstPage.post_loadData();
             }
+        } else if (ep_a['file']) {
+            pcontent.editor.insertPlainText("<img src=\"" + ep_a['url'] + "\" alt=\"desc\" />"); // width=\"480\" height=\"800\" class=\"aligncenter\" />");
+            ci_ep.close();
         } else {
             pinfos = ep_a;
             epind.stop();
@@ -37,6 +41,18 @@ Page {
     attachedObjects: [
         CustomIndicator {
             id: ci_ep
+        },
+        FilePicker {
+            id: ep_filePicker
+            type: FileType.Picture
+            title: qsTr("Select Picture")
+            mode: FilePickerMode.Picker
+            onFileSelected: {
+                wpu.uploadFile(selectedFiles[0]);
+                wpu.dataReady.connect(ep.ep_onDataReady);
+                ci_ep.body = qsTr("Uploading picture\nplease wait...");
+                ci_ep.open();
+            }
         }
     ]
     
@@ -56,6 +72,15 @@ Page {
                                     	wpu.dataReady_editPage.connect(ep.ep_onDataReady);
                                     else wpu.dataReady_editPost.connect(ep.ep_onDataReady);
                 }
+            }
+        },
+        ActionItem {
+            title: qsTr("Add Image")
+            imageSource: "asset:///images/addimage.png"
+            ActionBar.placement: ActionBarPlacement.OnBar
+
+            onTriggered: {
+                ep_filePicker.open();
             }
         }
     ]
@@ -117,9 +142,20 @@ Page {
             DropDown {
                 id: pstate
                 title: qsTr("Status")
+
+                Option {
+                    text: qsTr("Draft")
+                    value: "draft"
+                    selected: (pinfos) ? (value == pinfos.post_status ) : false
+                }
+                Option {
+                    text: qsTr("Pending")
+                    value: "pending"
+                    selected: (pinfos) ? (value == pinfos.post_status ) : false
+                }
                 Option {
                     text: qsTr("Public")
-                    value: "public"
+                    value: "publish"
                     selected: (pinfos) ? (value == pinfos.post_status ) : false
                 }
                 Option {

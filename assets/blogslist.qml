@@ -37,6 +37,7 @@ Page {
     
     function moveOn()
     {
+        navigationPane.mb = true;
             navigationPane.pop();
     }
     
@@ -65,6 +66,7 @@ Page {
                                 for (var i = 0; i < selectionList.length; i ++) {
                                     var selectedItem = listView.dataModel.data(selectionList[i]);
                                     wpu.setBlogsInfo(selectedItem.blogid, selectedItem.xmlrpc);
+                                    
                                     moveOn();
                                 }
 

@@ -29,7 +29,7 @@ Page {
             title: qsTr("Select Picture")
             mode: FilePickerMode.Picker
             onFileSelected: {
-		wpu.uploadFile(selectedFiles[0]);
+		        wpu.uploadFile(selectedFiles[0]);
                 wpu.dataReady.connect(mp_mpp.mp_onDataReady);
                 mp_ci.body = qsTr("Uploading picture\nplease wait...");
                 mp_ci.open();
@@ -90,6 +90,8 @@ Page {
             postcontent.editor.insertPlainText("<img src=\"" + mp_a['url'] + "\" alt=\"desc\" />"); // width=\"480\" height=\"800\" class=\"aligncenter\" />");
             mp_ci.close();
         } else console.log("wrg : smtg wrong"); /* TODO */
+        
+        wpu.resetRes();
     }
 
 

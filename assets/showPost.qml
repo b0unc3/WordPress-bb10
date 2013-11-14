@@ -4,7 +4,7 @@
  *      Author: Daniele (b0unc3) Maio
  */
 
-import bb.cascades 1.0
+import bb.cascades 1.2
 
 Page {
     
@@ -20,7 +20,7 @@ Page {
     onSp_postidChanged: {
         wpu.getPost(sp.post_show_page, sp.sp_postid);
         if ( sp.post_show_page )
-        	wpu.dataReady_getPage.connect(sp.sp_onDataReady);
+            wpu.dataReady_getPage.connect(sp.sp_onDataReady);
         else wpu.dataReady_getPost.connect(sp.sp_onDataReady);
     }
     
@@ -28,12 +28,16 @@ Page {
         //aspe`
         sp_myObj = wpu.getRes();
         if ( sp_myObj.post_content.indexOf("img") != -1 )
-            show_img = true;
-            
-        spind.stop();
+            sp.show_img = true;
         
-        cnt.text = getLabelText();
-        webView.html = getWebViewText();
+        if ( spind.running )
+        	spind.stop();
+        
+        if (!sp.show_img)
+        	cnt.text = getLabelText();
+        else
+            webView.html = getWebViewText();
+
     }
     
     function getLabelText()
@@ -41,8 +45,8 @@ Page {
         var res = "";
         if ( sp_myObj )
         {
-            if ( !show_img )
-            	return "<html>" + sp_myObj.post_content + "</html>"
+            if ( !sp.show_img )
+                return "<html>" + qsTr(sp_myObj.post_content) + "</html>"
         }
         
         return res
@@ -51,13 +55,13 @@ Page {
     function getWebViewText() {
         var res = "";
         if (sp_myObj) {
-            if ( show_img )
-            	return "<html><span style='font-size:60pt'>" + sp_myObj.post_content + "</span></html>"
+            if ( sp.show_img )
+            	return "<html><span style='font-size:50pt'>" + qsTr(sp_myObj.post_content) + "</span></html>"
         }
-            	
+
         return res
     }
-        
+    
     actionBarVisibility: ChromeVisibility.Visible
     
     
@@ -65,95 +69,83 @@ Page {
     titleBar: TitleBar {
         title: (sp_myObj) ? qsTr(sp_myObj.post_title) : ""
     }
-    content: Container {
-        layout: DockLayout { }
+    content: ScrollView {
+        verticalAlignment: VerticalAlignment.Fill
         
-        ActivityIndicator {
-            id: spind
-            horizontalAlignment: HorizontalAlignment.Center
-            verticalAlignment: VerticalAlignment.Center
-            
-            preferredHeight: 500
-            preferredWidth: 500
-            
-            running: true
+        topMargin: 30
+        bottomMargin: 30
+        leftMargin: 30
+        rightMargin: 30
+        
+        scrollViewProperties {
+            scrollMode: ScrollMode.Both
+            pinchToZoomEnabled: true
+            maxContentScale: 5
+            minContentScale: 0.5
         }
         
         Container {
-            layout: StackLayout { }
-
-            topMargin: 15
-            bottomMargin: 15
-            leftMargin: 15
-            rightMargin: 15
-            topPadding: 15
-            bottomPadding: 15
-            rightPadding: 15
-            leftPadding: 15
-
-            ScrollView {
-                id: scrollView
-                visible: !show_img
-
-                topMargin: 30
-                bottomMargin: 30
-                leftMargin: 30
-                rightMargin: 30
-                /*
-                scrollViewProperties {
-                    scrollMode: ScrollMode.Both
-                    pinchToZoomEnabled: true
-                    maxContentScale: 5
-                    minContentScale: 1
-                }
+            layout: DockLayout { }
+            
+            ActivityIndicator {
+                id: spind
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Center
                 
-                layoutProperties: StackLayoutProperties {
-                    spaceQuota: 1.0
-                }*/
+                preferredHeight: 500
+                preferredWidth: 500
                 
-                Label {
+                running: true
+            }
+            
+            Container {
+                layout: StackLayout { }
+                
+                verticalAlignment: VerticalAlignment.Fill
+                
+                topMargin: 15
+                bottomMargin: 15
+                leftMargin: 15
+                rightMargin: 15
+                topPadding: 15
+                bottomPadding: 15
+                rightPadding: 15
+                leftPadding: 15
+                
+                
+                TextArea {
+                    backgroundVisible: false
+                    verticalAlignment: VerticalAlignment.Fill
                     topMargin: 30
                     bottomMargin: 30
                     leftMargin: 30
                     rightMargin: 30
+                    editable: false
+                    
+                    
+                    maxWidth: 738
+                    preferredWidth: 738
+                    
                     id: cnt
-                    multiline: true
                     textFormat: TextFormat.Html
                     textStyle.base: SystemDefaults.TextStyles.BodyText
-                    text: getLabelText(); 
-                    visible: !show_img
+                    visible: !sp.show_img
+                    textStyle.textAlign: TextAlign.Justify
+                    textFit {
+                        minFontSizeValue: 1
+                        maxFontSizeValue: 10
+                    }
+                
                 }
-            }
-            ScrollView {
-                id: scrollView_wv
-                visible: show_img
-
-                topMargin: 30
-                bottomMargin: 30
-                leftMargin: 30
-                rightMargin: 30
-                /*
-                 * scrollViewProperties {
-                 * scrollMode: ScrollMode.Both
-                 * pinchToZoomEnabled: true
-                 * maxContentScale: 5
-                 * minContentScale: 1
-                 * }
-                 * 
-                 * layoutProperties: StackLayoutProperties {
-                 * spaceQuota: 1.0
-                 * }*/
                 WebView {
                     id: webView
-                    html: getWebViewText()
-                        //((show_img) ? ((post_show_page) ? sp_myObj.description : ((sp_myObj) ? "<html>" + sp_myObj.post_content + "</html>" : "")) : "")
-                    //(show_img) ? ((sp_myObj) ? "<html>" + sp_myObj.post_content + "</html>" : "") : "";
-                    visible: show_img
-                    
-                }
+                    maxWidth: 738
+                    preferredWidth: 738
+                    visible: sp.show_img
+            	}
             }
-                
         }
-    }
-}
 
+    }
+
+}
