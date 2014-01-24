@@ -48,7 +48,7 @@ Page {
                 {
                 	mp_ci.body = qsTr("Creating the new " +((mp_mpp.post_showpage) ? "page" : "post") + "\nplaease wait...");
                 	mp_ci.open();
-                	wpu.makePost(mp_mpp.post_showpage, posttitle.text, postcontent.text.trim(), ((posttype.selectedValue) ? posttype.selectedValue : "" ) , poststatus.selectedValue);
+                    wpu.buildWPXML("wp.newPost", true, [], [], ["post_type", "post_status", "post_title", "post_content"], [ ( (mp_mpp.post_showpage) ? "page" : ((posttype.selectedValue) ? posttype.selectedValue : "" ) ), poststatus.selectedValue, posttitle.text, postcontent.text.trim()] );
                 	if ( mp_mpp.post_showpage )
                 	 	wpu.dataReady_newPage.connect(mp_mpp.mp_onDataReady);
                 	else wpu.dataReady_newPost.connect(mp_mpp.mp_onDataReady);

@@ -13,7 +13,7 @@ Page {
     property variant vc_infos;
     
     onVc_cidChanged: {
-        wpu.getComment(vcp.vc_cid);
+        wpu.buildWPXML("wp.getComment", true, ["comment_id"], [vcp.vc_cid], [], []);
         wpu.dataReady_getComment.connect(vcp.vc_onDataReady);
     }
     

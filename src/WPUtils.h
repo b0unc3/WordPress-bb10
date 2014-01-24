@@ -60,22 +60,15 @@ public:
 	WPUtils(QObject *parent = 0);
 	virtual ~WPUtils();
 
-	Q_INVOKABLE void getBlogs(QString, QString, QString);
-	Q_INVOKABLE void getPosts(bool);
-	Q_INVOKABLE void setBlogsInfo(QString,QString);
-	Q_INVOKABLE void getComments();
-	Q_INVOKABLE void getPages();
-	Q_INVOKABLE void getPost(bool, QString);
-	Q_INVOKABLE void getCategories();
-	Q_INVOKABLE void makePost(bool, QString, QVariant, QVariant, QVariant);
-	Q_INVOKABLE void deletePost(bool, QString);
-	Q_INVOKABLE void uploadFile(QString);
-	Q_INVOKABLE void editComment(QString, QString, QString, QString, QString, QString);
-	Q_INVOKABLE void deleteComment(QString);
-	Q_INVOKABLE void newComment(QString, QString, QString);
-	Q_INVOKABLE void getComment(QString);
-	Q_INVOKABLE void editPost(bool, QString, QString, QString, QString, QString);
+	Q_INVOKABLE void buildWPXML(QString, bool, QStringList, QStringList, QStringList, QStringList);
 
+	Q_INVOKABLE void getBlogs(QString, QString, QString);
+
+	Q_INVOKABLE void setBlogsInfo(QString,QString);
+
+	Q_INVOKABLE void getCategories(); // <-- unused
+
+	Q_INVOKABLE void uploadFile(QString);
 	Q_INVOKABLE bb::cascades::GroupDataModel *setModel(QByteArray); /* should be getModel, since the model is setted in another func */
 	QString searchEndPoint(QString);
 
@@ -97,7 +90,8 @@ private:
 	bool _info_registered;
 	static const QString dbName;
 	QMap<QString, QVariant> _blogs;
-	//QHash<QString, QString> _blogs;
+	QString _totbid;
+	QString _totburl;
 	QString _endpoint;
 	QString _url;
 	QEventLoop _loop;

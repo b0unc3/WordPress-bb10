@@ -18,10 +18,13 @@ Page {
     property bool show_img: false
     
     onSp_postidChanged: {
-        wpu.getPost(sp.post_show_page, sp.sp_postid);
-        if ( sp.post_show_page )
-            wpu.dataReady_getPage.connect(sp.sp_onDataReady);
-        else wpu.dataReady_getPost.connect(sp.sp_onDataReady);
+        wpu.buildWPXML("wp.getPost", true, ["post_id"], [sp.sp_postid], [], []);
+        /* assumes pages and posts are treated at the same way **/
+      //  wpu.getPost(sp.post_show_page, sp.sp_postid);
+     //   if ( sp.post_show_page )
+       //     wpu.dataReady_getPage.connect(sp.sp_onDataReady);
+       // else 
+       wpu.dataReady_getPost.connect(sp.sp_onDataReady);
     }
     
     function sp_onDataReady() {

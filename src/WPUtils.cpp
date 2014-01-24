@@ -26,7 +26,7 @@ WPUtils::WPUtils(QObject *parent)
 	{
 		qDebug() << "db not opened!";
 		_info_registered = false;
-			/* FIXIT */
+		/* FIXIT */
 	}
 	if (!info_registered())
 		_info_registered = false;
@@ -50,7 +50,7 @@ void WPUtils::getRegisteredData()
 	 * blogid - xmlrpc  <= multiple item separated by comma
 	 * TODO = create another table and link with foreign key
 	 */
-	//for sure there is only - 1 - record
+	//*for* sure there is only - 1 - record
 	q.next();
 	_username = q.value(2).toString();
 	_password = q.value(3).toString();
@@ -69,6 +69,8 @@ void WPUtils::getRegisteredData()
 
 		_blogid = bis.at(i).trimmed(); //_blogs.values("blogid")[_position];
 		_endpoint = xrs.at(i).trimmed();//_blogs.values("burl")[_position];
+		qDebug() << "adding item in pos = " << QString::number(i);
+		qDebug()  << "going to add  =  " << bis.at(i) << xrs.at(i);
 		//void WPUtils::setBlogsInfo(QString bid, QString burl)
 
 	}
@@ -118,10 +120,12 @@ bool WPUtils::blogsInfo()
 void WPUtils::setBlogsInfo(QString bid, QString burl)
 {
 
+	qDebug() << "saving " << bid << burl;
+
 	_blogs.insertMulti(bid, burl);
 
-	QString totbid = _blogid + " , " + bid;
-	QString totburl= _endpoint + " , " + burl;
+	_totbid += (( !_totbid.isEmpty() ) ? " , "  : "" ) + bid; // + _blogid + " , " + bid;
+	_totburl+= (( !_totburl.isEmpty() ) ? " , "  : "" ) + burl; // _endpoint + " , " + burl;
 
 	_blogid = bid; //_blogs.values("blogid")[_position];
 	_endpoint = burl;//_blogs.values("burl")[_position];
@@ -131,6 +135,7 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 
 	if ( !info_registered() )
 	{
+		qDebug() << "inserting" << _blogid << _endpoint;
 		query.prepare("INSERT INTO userinfo (blogid,username,password,xmlrpc) VALUES (:blogid, :username, :password, :xmlrpc)");
 		query.bindValue(":blogid", _blogid);
 		query.bindValue(":username", _username);
@@ -138,10 +143,11 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 		query.bindValue(":xmlrpc", _endpoint);
 		query.exec();
 	} else {
+		qDebug() << "updating" << _totbid << _totburl;
 		query.prepare("UPDATE userinfo set blogid=:blogid , xmlrpc=:xmlrpc");
-		query.bindValue(":blogid", totbid);
-		query.bindValue(":xmlrpc", totburl);
-		QSqlError e = query.lastError();
+		query.bindValue(":blogid", _totbid);
+		query.bindValue(":xmlrpc", _totburl);
+		//QSqlError e = query.lastError();
 		query.exec();
 	}
 }
@@ -159,9 +165,19 @@ void WPUtils::uploadFile(QString furl)
 	QStringList l = fn.split('/');
 	QString nome = l[l.count()-1];
 
+
+
 	QString f = workingDir + "/shared/camera/" + nome;
 
 	QFile* file = new QFile(f);
+
+	QFile flog(QDir::currentPath() + "/shared/documents/dwplog");
+	flog.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+	QTextStream out(&flog);
+	out << "FUNCTION :  uploadFile() - furl " << furl;
+	out << "opening .. " << f;
+
+
 
 	if ( file->exists() )
 		qDebug() << "file founded.";
@@ -221,6 +237,9 @@ void WPUtils::uploadFile(QString furl)
 	sw.writeEndElement();
 	sw.writeEndDocument();
 
+	out << "xml created = " << _xml;
+	flog.close();
+
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
@@ -238,439 +257,79 @@ void WPUtils::uploadFile(QString furl)
 	manager->post(request,_xml);
 }
 
-void WPUtils::getComment(QString comment_id)
+
+void WPUtils::buildWPXML(QString mName, bool standardParams,
+		QStringList other_paramsNames, QStringList other_paramsValues,
+		QStringList memberNames , QStringList memberValues)
+
 {
-	_xml.clear();
+	qDebug() << "bwpx : endpoint on = " << _endpoint;
+	QByteArray _xml;
 	QXmlStreamWriter sw(&_xml);
 
 	sw.setAutoFormatting(true);
 	sw.writeStartDocument();
 
 	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.getComment");
+	sw.writeTextElement("methodName", mName);
+
 	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
+
+	if ( standardParams )
+	{
+		sw.writeStartElement("param");
+		sw.writeCharacters("blog_id");
+		sw.writeTextElement("value", _blogid);
+		sw.writeEndElement();
+
+		sw.writeStartElement("param");
+		sw.writeCharacters("username");
+		sw.writeTextElement("value", _username);
+		sw.writeEndElement();
+
+		sw.writeStartElement("param");
+		sw.writeCharacters("password");
+		sw.writeTextElement("value", _password);
+		sw.writeEndElement();
+	}
+
+	int i;
+
+	for ( i=0; i<other_paramsNames.size(); i++ )
+	{
+		sw.writeStartElement("param");
+		sw.writeCharacters(other_paramsNames.at(i).toLocal8Bit().constData());
+		sw.writeTextElement("value", other_paramsValues.at(i).toLocal8Bit().constData());
+		sw.writeEndElement();
+	}
 	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("comment_id");
-	sw.writeTextElement("value", comment_id);
-	sw.writeEndElement();
-	sw.writeEndElement();
+	if ( memberNames.size() > 0 )
+	{
+		sw.writeStartElement("struct");
+
+		for ( i = 0; i < memberNames.size(); i++ )
+		{
+			sw.writeStartElement("member");
+			sw.writeTextElement("name", memberNames.at(i).toLocal8Bit().constData());
+			sw.writeTextElement("value", memberValues.at(i).toLocal8Bit().constData());
+			sw.writeEndElement();
+
+		}
+
+		sw.writeEndElement();
+	}
+
+
 	sw.writeEndDocument();
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-	manager->setObjectName("getComment");
+	mName.replace("deletePost","delPost", Qt::CaseSensitive);
+	mName.replace("deleteComment", "delComment", Qt::CaseSensitive);
+	if ( memberValues.contains("page", Qt::CaseSensitive) )
+		mName.replace("Post", "Page", Qt::CaseInsensitive);
 
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::newComment(QString post_id, QString content, QString comment_parent)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.newComment");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("post_id");
-	sw.writeTextElement("value", post_id);
-	sw.writeEndElement();
-	sw.writeStartElement("struct");
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "content");
-	sw.writeTextElement("value", content);
-	sw.writeEndElement();
-	if ( !comment_parent.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "comment_parent");
-		sw.writeTextElement("value", comment_parent);
-		sw.writeEndElement();
-	}
-
-
-
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	manager->setObjectName("newComment");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-
-	manager->post(request,_xml);
-}
-
-
-void WPUtils::editComment(QString comment_id, QString status, QString content, QString author, QString authormail, QString authorurl)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.editComment");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("comment_id");
-	sw.writeTextElement("value", comment_id);
-	sw.writeEndElement();
-	sw.writeStartElement("struct");
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "status");
-	sw.writeTextElement("value", status);
-	sw.writeEndElement();
-	if ( !content.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "content");
-		sw.writeTextElement("value", content);
-		sw.writeEndElement();
-	}
-	if ( !author.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "author");
-		sw.writeTextElement("value", author);
-		sw.writeEndElement();
-	}
-	if ( !authormail.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "author_email");
-		sw.writeTextElement("value", authormail);
-		sw.writeEndElement();
-	}
-	if ( !authorurl.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "author_url");
-		sw.writeTextElement("value", authorurl);
-		sw.writeEndElement();
-	}
-
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	manager->setObjectName("editComment");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::editPost(bool pages, QString pid, QString title, QString content, QString status, QString format)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.editPost");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("post_id");
-	sw.writeTextElement("value", pid);
-	sw.writeEndElement();
-	sw.writeStartElement("struct");
-	if ( !content.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "post_content");
-		sw.writeTextElement("value", content);
-		sw.writeEndElement();
-	}
-	if ( !title.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "post_title");
-		sw.writeTextElement("value", title);
-		sw.writeEndElement();
-	}
-	if ( !status.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "post_status");
-		sw.writeTextElement("value", status);
-		sw.writeEndElement();
-	}
-	if ( !format.isEmpty())
-	{
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "post_format");
-		sw.writeTextElement("value", format);
-		sw.writeEndElement();
-	}
-
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	if ( pages )
-		manager->setObjectName("editPage");
-	else manager->setObjectName("editPost");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::deletePost(bool pages, QString post_id)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.deletePost");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("post_id");
-	sw.writeTextElement("value", post_id);
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	if ( pages )
-		manager->setObjectName("delPage");
-	else manager->setObjectName("delPost");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::deleteComment(QString comment_id)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.deleteComment");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("comment_id");
-	sw.writeTextElement("value", comment_id);
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	manager->setObjectName("delComment");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::makePost(bool pages, QString title, QVariant cnt, QVariant type, QVariant status)
-{
-	_xml.clear();
-	QString pd = cnt.toString();
-	//pd.replace("&","&amp;");//&#38;");
-	/*
-	pd.replace("<","&lt;");//&#60;");
-	pd.replace(">","&gt;");//#62;");
-	pd.replace("\"","&quot;");//#34;");
-	 */
-
-	QXmlStreamWriter sw(&_xml);
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.newPost");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeStartElement("struct");
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "post_type");
-	sw.writeTextElement("value", (pages) ? "page" : type.toString());
-	sw.writeEndElement();
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "post_status");
-	sw.writeTextElement("value", status.toString());
-	sw.writeEndElement();
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "post_title");
-	sw.writeTextElement("value", title);
-	sw.writeEndElement();
-
-	sw.writeStartElement("member");
-	sw.writeTextElement("name", "post_content");
-	sw.writeTextElement("value", pd.toAscii());//.toUtf8());
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	if ( pages )
-		manager->setObjectName("newPage");
-	else manager->setObjectName("newPost");
+	manager->setObjectName(mName.replace("wp.",""));
 
 	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
@@ -690,6 +349,7 @@ void WPUtils::getBlogs(QString u, QString p, QString blog_address)
 {
 	_xml.clear();
 	/* alternative ? */
+	/* convert to XXMLStream* family */
 	QDomDocument doc;
 	QDomProcessingInstruction init = doc.createProcessingInstruction("xml version=\"1.0\"", "encoding=\"UTF-8\"");
 	QDomElement mc = doc.createElement("methodCall");
@@ -821,188 +481,6 @@ void WPUtils::getCategories()
 	manager->post(request,_xml);
 }
 
-void WPUtils::getPost(bool pages, QString pid)
-{
-
-	_xml.clear();
-	/* alternative ? */
-	QDomDocument doc;
-	QDomProcessingInstruction init = doc.createProcessingInstruction("xml version=\"1.0\"", "encoding=\"UTF-8\"");
-	QDomElement mc = doc.createElement("methodCall");
-	QDomElement mn = doc.createElement("methodName");
-	QDomText mnt = doc.createTextNode("wp.getPost");
-	QDomElement ps = doc.createElement("params");
-	QDomElement p1 = doc.createElement("param");
-	QDomText p1t = doc.createTextNode("blogid");
-	QDomElement v1 = doc.createElement("value");
-	QDomText v1t = doc.createTextNode(_blogid);
-	QDomElement p2 = doc.createElement("param");
-	QDomText p2t = doc.createTextNode("username");
-	QDomElement v2 = doc.createElement("value");
-	QDomText v2t = doc.createTextNode(_username);
-	QDomElement p3 = doc.createElement("param");
-	QDomText p3t = doc.createTextNode("password");
-	QDomElement v3 = doc.createElement("value");
-	QDomText v3t = doc.createTextNode(_password);
-	QDomElement p4 = doc.createElement("param");
-	QDomText p4t = doc.createTextNode("post_id");
-	QDomElement v4 = doc.createElement("value");
-	QDomText v4t = doc.createTextNode(pid);
-
-	doc.appendChild(init);
-	doc.appendChild(mc);
-	mc.appendChild(mn);
-	mn.appendChild(mnt);
-	mc.appendChild(ps);
-
-	ps.appendChild(p1);
-	p1.appendChild(p1t);
-	p1.appendChild(v1);
-	v1.appendChild(v1t);
-
-	ps.appendChild(p2);
-	p2.appendChild(p2t);
-	p2.appendChild(v2);
-	v2.appendChild(v2t);
-
-	ps.appendChild(p3);
-	p3.appendChild(p3t);
-	p3.appendChild(v3);
-	v3.appendChild(v3t);
-
-	ps.appendChild(p4);
-	p4.appendChild(p4t);
-	p4.appendChild(v4);
-	v4.appendChild(v4t);
-
-
-
-	_xml = doc.toString().toUtf8();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	if ( pages )
-		manager->setObjectName("getPage");
-	else manager->setObjectName("getPost");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::getPages()
-{
-	//useless
-}
-
-void WPUtils::getComments()
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.getComments");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	manager->setObjectName("getComments");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
-void WPUtils::getPosts(bool pages)
-{
-	_xml.clear();
-	QXmlStreamWriter sw(&_xml);
-
-	sw.setAutoFormatting(true);
-	sw.writeStartDocument();
-
-	sw.writeStartElement("methodCall");
-	sw.writeTextElement("methodName", "wp.getPosts");
-	sw.writeStartElement("params");
-	sw.writeStartElement("param");
-	sw.writeCharacters("blog_id");
-	sw.writeTextElement("value", _blogid);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("username");
-	sw.writeTextElement("value", _username);
-	sw.writeEndElement();
-	sw.writeStartElement("param");
-	sw.writeCharacters("password");
-	sw.writeTextElement("value", _password);
-	sw.writeEndElement();
-	if ( pages )
-	{
-		sw.writeStartElement("struct");
-		sw.writeStartElement("member");
-		sw.writeTextElement("name", "post_type");
-		sw.writeTextElement("value", "page");
-		sw.writeEndElement();
-		sw.writeEndElement();
-	}
-	sw.writeEndElement();
-	sw.writeEndDocument();
-
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-	if ( pages )
-		manager->setObjectName("getPages");
-	else manager->setObjectName("getPosts");
-
-	QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-
-	QUrl url;
-
-	url.setUrl(_endpoint);
-	QNetworkRequest request(url);
-	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
-	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
-
-	manager->post(request,_xml);
-}
-
 void WPUtils::replyFinished(QNetworkReply *rep)
 {
 	QVariantMap _res_bck;
@@ -1027,6 +505,14 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 	if ( !ret.isEmpty() )
 		qDebug() << "reading " << ret; //rep->readAll();
 	else qDebug() << "ret empty -> error handling /*TODO*/";
+
+	QFile flog(QDir::currentPath() + "/shared/documents/dwplog");
+	//QFile flog("/tmp/wplog");
+	flog.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+	QTextStream out(&flog);
+	out << "FUNCTION :  replyFinished() ";
+	out << "reply = " << ret;
+	flog.close();
 
 	QString _current_name = "";
 
@@ -1056,11 +542,19 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 					token = xml.readNext();
 					if ( _current_name == "post_date" || _current_name == "date_created_gmt" )
 					{
+						QLocale c = QLocale::c();
+						QDateTime date = c.toDateTime(xml.text().toString(), QLatin1String("yyyyMMddTHH:mm:ss"));//ddd, dd MMM yyyy HH:mm:ss"));// '+0000"));
+						QString outputFromat("dd MMM yyyy - HH:mm:ss");
+						date.setTimeSpec(Qt::UTC);
+						res["sortDate"] = date;
+						res["date"] = date.toString(outputFromat);
 						/* is this insane?! */
+						/*
 						QString theDate = xml.text().toString(); //"20130503T14:48:55";
 						QDateTime date = QDateTime::fromString(theDate, "yyyyMMddTHH:mm:ss");
 						res["sortDate"] = date;
 						res["date"] = date.toString(Qt::SystemLocaleShortDate);
+						*/
 					}
 					else res[_current_name] = xml.text().toString();
 
@@ -1092,7 +586,6 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 				res.clear();
 			}
 
-
 		} else if ( token == QXmlStreamReader::EndElement )
 		{
 			if ( xml.name().toString() == "struct" )
@@ -1114,6 +607,23 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 	}
 
 	res = _res_bck;
+
+	QList<QVariant> one_blog = res.values("blogid");
+
+	if ( !one_blog.isEmpty() )
+	{
+		qDebug() << "one blog = " << one_blog;
+		qDebug() << "size = " << QString::number(one_blog.size());
+		if ( one_blog.size() == 1 )
+		{
+			/* skip the blog selection */
+			qDebug() << "adding = " << one_blog[0].toString();
+			QList<QVariant> bu = res.values("xmlrpc");
+			setBlogsInfo(one_blog[0].toString(), bu[0].toString());
+			res["oneblog"] = 1;
+			//setBlogsInfo(one_blog[1], QString burl)
+		}
+	}
 
 	if(QObject* pObject = sender()) {
 		QString name = pObject->objectName();

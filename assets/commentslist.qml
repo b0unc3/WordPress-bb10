@@ -28,7 +28,7 @@ Page {
         if ( comment_clListView.dataModel )
         	comment_clListView.setDataModel(null);
         	
-        wpu.getComments();
+        wpu.buildWPXML("wp.getComments", true, [], [], [], []);
         wpu.dataReady_getComments.connect(comment_cp.comment_onDataReady);
     }
     
@@ -105,7 +105,7 @@ Page {
                 if (x == SystemUiResult.ConfirmButtonSelection) {
                     comment_delprog.body = qsTr("Deleting comment\nPlease wait...");
                     comment_delprog.open();
-                    wpu.deleteComment(cid);
+                    wpu.buildWPXML("wp.deleteComment", true, ["post_id"], [cid], [], []);
                     wpu.dataReady_delComment.connect(comment_cp.comment_onDataReady);
                 } else if (x == SystemUiResult.CancelButtonSelection) {
                     console.log("cancel");
@@ -160,7 +160,7 @@ Page {
                 function modIt(id, action) {
                     comment_clind.start();
                     comment_clListView.resetDataModel();
-                    wpu.editComment(id, action, "", "", "", "");
+                    wpu.buildWPXML("wp.editComment", true, ["comment_id"], [id], ["status"], [action] );
                     wpu.dataReady_editComment.connect(comment_clListView.comment_onDataReady);
                 }
 
@@ -174,7 +174,7 @@ Page {
                         // wpu.resetRes();
                     } else if (comment_ca["delpost"]) {
                         if (comment_ca["delpost"] == 1) {
-                            wpu.getComments();
+                            wpu.buildWPXML("wp.getComments", true, [], [], [], []);
                             wpu.dataReady_getComments.connect(comment_cp.comment_onDataReady);
                         } else console.log("mod fail");
 

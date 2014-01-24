@@ -10,7 +10,7 @@ Page {
     property bool post_showpage;
     
     onPost_idChanged: {
-        wpu.getPost(ep.post_showpage, post_id);
+        wpu.buildWPXML("wp.getPost", true, ["post_id"], [post_id], ["post_type"], [((ep.post_showpage) ? "page" : "post")]);
         if ( ep.post_showpage )
         	wpu.dataReady_getPage.connect(ep.ep_onDataReady);
         else wpu.dataReady_getPost.connect(ep.ep_onDataReady);
@@ -67,7 +67,7 @@ Page {
                 {
                                     ci_ep.body = qsTr("Editing post\nPlease wait...");
                                     ci_ep.open();
-                                    wpu.editPost(ep.post_showpage, ep.post_id,ptitle.text,pcontent.text,pstate.selectedValue, pformat.selectedValue);
+                                    wpu.buildWPXML("wp.editPost", true, ["post_id"], [ep.post_id], ["post_title", "post_content", "post_status", "post_format", "post_type"], [ptitle.text, pcontent.text, pstate.selectedValue, pformat.selectedValue, (ep.post_showpage) ? "page" : "post"] );
                                     if ( ep.post_showpage )
                                     	wpu.dataReady_editPage.connect(ep.ep_onDataReady);
                                     else wpu.dataReady_editPost.connect(ep.ep_onDataReady);

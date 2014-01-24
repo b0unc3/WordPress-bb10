@@ -17,6 +17,10 @@ Page {
             id: pageDefinition
             source: "blogslist.qml"
         },
+        ComponentDefinition {
+            id: polist
+            source: "postslist.qml"
+        },
         SystemToast {
             id: myQmlToast
             body: "Unable to register account\nPlease try again."
@@ -37,7 +41,20 @@ Page {
             si.enabled = true
             si.imageSource = '';
             //    	wpu.resetRes();
-        } else {
+        } else if ( a["oneblog"] ) {
+            wpu.setUsername(usr.text);
+            wpu.setPassword(pwd.text);
+            
+            navigationPane.pop();
+            /*
+            var ppost_ = polist.createObject();
+            ppost_.post_showpage = false;
+            navpostpane.push(ppost_);
+            ppost_.post_loadData();
+            */
+            wpu.resetRes();
+        } 
+        else {
             wpu.setUsername(usr.text);
             wpu.setPassword(pwd.text);
             
@@ -139,6 +156,8 @@ Page {
                         if (usr.text && pwd.text) {
                             si.imageSource = "asset:///images/loading.gif";
                             si.enabled = false;
+                            wpu.setUsername(usr.text);
+                            wpu.setPassword(pwd.text);
                             wpu.getBlogs(usr.text, pwd.text, blgd.text);
                             wpu.dataReady_getUsersBlogs.connect(lp.onDataReady);
                         } else {; /*** TODO ***/

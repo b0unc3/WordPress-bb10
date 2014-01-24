@@ -9,7 +9,7 @@ Page {
     property variant ec_cinfos;
     
     onEc_comment_idChanged: {
-        wpu.getComment(ec_comment_id);
+        wpu.buildWPXML("wp.getComment", true, ["post_id"], [ec_comment_id], [], []);
         wpu.dataReady_getComment.connect(ecp.ec_onDataReady);
     }
     
@@ -37,12 +37,12 @@ Page {
             
             
             onTriggered: {
-                //crude sanity check
+                //crude (in)sanity check
                 if ( auth.text != "" && authmail.text !="" && authurl.text != "" && ccontent.text !="" && cstate.selectedValue != "" )
                 {
                     ec_ci.body = qsTr("Making changes\nPlease wait...");
                     ec_ci.open();
-                    wpu.editComment(ec_comment_id, cstate.selectedValue, ccontent.text, auth.text, authmail.text, authurl.text);
+                    wpu.buildWPXML("wp.editComment", true, ["comment_id"], [ec_comment_id], ["status", "content", "author", "author_email", "author_url"], [cstate.selectedValue, ccontent.text, auth.text, authmail.text, authurl.text] );
                     wpu.dataReady_editComment.connect(ecp.ec_onDataReady);
                 }
             }
