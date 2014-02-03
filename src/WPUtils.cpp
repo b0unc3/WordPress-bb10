@@ -6,6 +6,8 @@
 
 #include "WPUtils.h"
 
+#include <QSettings>
+
 
 const QString WPUtils::dbName = "wpbb10.db";
 
@@ -72,7 +74,13 @@ void WPUtils::getRegisteredData()
 		qDebug() << "adding item in pos = " << QString::number(i);
 		qDebug()  << "going to add  =  " << bis.at(i) << xrs.at(i);
 		//void WPUtils::setBlogsInfo(QString bid, QString burl)
+	}
 
+	QSettings settings;
+
+	if (!settings.value("blogid").isNull()) {
+		_blogid = settings.value("blogid").toString();
+		_endpoint = settings.value("endpoint").toString();
 	}
 
 }
@@ -97,7 +105,15 @@ void WPUtils::setCurrentBlog(QString b, QString u)
 	{
 		_blogid = b.trimmed();
 		_endpoint =u.trimmed();
+		QSettings settings;
+		settings.setValue("blogid", _blogid);
+		settings.setValue("endpoint", _endpoint);
 	}
+}
+
+QString WPUtils::getCurrentBlog()
+{
+	return _blogid + "-" + _endpoint;
 }
 
 QMap<QString, QVariant> WPUtils::getBI()
@@ -159,23 +175,7 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 
 void WPUtils::uploadFile(QString furl)
 {
-	QString workingDir = QDir::currentPath();
-
-	QString fn = furl;
-	QStringList l = fn.split('/');
-	QString nome = l[l.count()-1];
-
-
-
-	QString f = workingDir + "/shared/camera/" + nome;
-
-	QFile* file = new QFile(f);
-
-	QFile flog(QDir::currentPath() + "/shared/documents/dwplog");
-	flog.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-	QTextStream out(&flog);
-	out << "FUNCTION :  uploadFile() - furl " << furl;
-	out << "opening .. " << f;
+	QFile* file = new QFile(furl);
 
 
 
@@ -188,6 +188,9 @@ void WPUtils::uploadFile(QString furl)
 	else qDebug() << "unreadable";
 
 	file->open(QIODevice::ReadOnly);
+
+	QFileInfo fileInfo(file->fileName());
+	QString nome(fileInfo.fileName());
 
 	_xml.clear();
 	QXmlStreamWriter sw(&_xml);
@@ -217,7 +220,7 @@ void WPUtils::uploadFile(QString furl)
 	sw.writeEndElement();
 	sw.writeStartElement("member");
 	sw.writeTextElement("name", "type");
-	QImageReader reader(f);
+	QImageReader reader(furl);
 
 	sw.writeTextElement("value", "image/"+reader.format());
 	sw.writeEndElement();
@@ -236,9 +239,6 @@ void WPUtils::uploadFile(QString furl)
 	sw.writeEndElement();
 	sw.writeEndElement();
 	sw.writeEndDocument();
-
-	out << "xml created = " << _xml;
-	flog.close();
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
@@ -348,38 +348,25 @@ void WPUtils::buildWPXML(QString mName, bool standardParams,
 void WPUtils::getBlogs(QString u, QString p, QString blog_address)
 {
 	_xml.clear();
-	/* alternative ? */
-	/* convert to XXMLStream* family */
-	QDomDocument doc;
-	QDomProcessingInstruction init = doc.createProcessingInstruction("xml version=\"1.0\"", "encoding=\"UTF-8\"");
-	QDomElement mc = doc.createElement("methodCall");
-	QDomElement mn = doc.createElement("methodName");
-	QDomText mnt = doc.createTextNode("wp.getUsersBlogs");
-	QDomElement ps = doc.createElement("params");
-	QDomElement p1 = doc.createElement("param");
-	QDomText p1t = doc.createTextNode("username");
-	QDomElement v1 = doc.createElement("value");
-	QDomText v1t = doc.createTextNode(u);
-	QDomElement p2 = doc.createElement("param");
-	QDomText p2t = doc.createTextNode("password");
-	QDomElement v2 = doc.createElement("value");
-	QDomText v2t = doc.createTextNode(p);
+	QXmlStreamWriter sw(&_xml);
 
-	doc.appendChild(init);
-	doc.appendChild(mc);
-	mc.appendChild(mn);
-	mn.appendChild(mnt);
-	mc.appendChild(ps);
-	ps.appendChild(p1);
-	p1.appendChild(p1t);
-	p1.appendChild(v1);
-	v1.appendChild(v1t);
-	ps.appendChild(p2);
-	p2.appendChild(p2t);
-	p2.appendChild(v2);
-	v2.appendChild(v2t);
+	sw.setAutoFormatting(true);
+	sw.writeStartDocument();
 
-	QString xml = doc.toString();
+	sw.writeStartElement("methodCall");
+	sw.writeTextElement("methodName", "wp.getUsersBlogs");
+
+	sw.writeStartElement("params");
+	sw.writeStartElement("param");
+	sw.writeCharacters("username");
+	sw.writeTextElement("value", u);
+	sw.writeEndElement();
+	sw.writeStartElement("param");
+	sw.writeCharacters("password");
+	sw.writeTextElement("value", p);
+	sw.writeEndElement();
+
+	sw.writeEndDocument();
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 
@@ -389,7 +376,7 @@ void WPUtils::getBlogs(QString u, QString p, QString blog_address)
 
 	QUrl url;
 
-	_xml = xml.toUtf8();
+	//_xml = xml.toUtf8();
 
 	QString tmp_url = searchEndPoint(blog_address);
 	if ( tmp_url.isEmpty() )
@@ -411,6 +398,7 @@ void WPUtils::getBlogs(QString u, QString p, QString blog_address)
 
 void WPUtils::getCategories()
 {
+	/* not yet used */
 	_xml.clear();
 	QDomDocument doc;
 	QDomProcessingInstruction init = doc.createProcessingInstruction("xml version=\"1.0\"", "encoding=\"UTF-8\"");
@@ -627,8 +615,6 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 
 	if(QObject* pObject = sender()) {
 		QString name = pObject->objectName();
-		//datagetPosts
-		//getPosts
 		if ( !name.isEmpty() )
 		{
 			QString methodName = "dataReady_" + name;
@@ -710,7 +696,7 @@ QString WPUtils::searchEndPoint(QString url) // WP_FindEndPoint(QString url)
 		} else {
 			/*
 						unable to locate xmlrpc.php
-						try to search on the HTML. href of pingback link
+						try to search in the HTML. href or pingback link
 			 */
 			QNetworkAccessManager *a = new QNetworkAccessManager();
 			QUrl url(_url);//.append("/"));

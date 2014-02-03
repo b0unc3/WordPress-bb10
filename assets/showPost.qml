@@ -17,6 +17,11 @@ Page {
     property bool post_show_page;
     property bool show_img: false
     
+    onCreationCompleted: {
+        /* hack to avoid app crash on 10.2.0.429 */
+        webView.html = "<html><img src=\"local:///assets/images/blank.png\" alt=\"desc\" /></html>";
+    }
+    
     onSp_postidChanged: {
         wpu.buildWPXML("wp.getPost", true, ["post_id"], [sp.sp_postid], [], []);
         /* assumes pages and posts are treated at the same way **/
@@ -31,16 +36,14 @@ Page {
         //aspe`
         sp_myObj = wpu.getRes();
         if ( sp_myObj.post_content.indexOf("img") != -1 )
-            sp.show_img = true;
+        	sp.show_img = true;
+        else webView.settings.viewport = { "initial-scale" : 1.0}
         
         if ( spind.running )
         	spind.stop();
+        	
+        webView.html = getWebViewText();
         
-        if (!sp.show_img)
-        	cnt.text = getLabelText();
-        else
-            webView.html = getWebViewText();
-
     }
     
     function getLabelText()
@@ -56,17 +59,27 @@ Page {
     }
     
     function getWebViewText() {
-        var res = "";
         if (sp_myObj) {
             if ( sp.show_img )
             	return "<html><span style='font-size:50pt'>" + qsTr(sp_myObj.post_content) + "</span></html>"
-        }
-
-        return res
+            else return "<html>" + qsTr(sp_myObj.post_content) + "</html>";
+        } 
     }
     
     actionBarVisibility: ChromeVisibility.Visible
     
+    actions: [
+        InvokeActionItem {
+            ActionBar.placement: ActionBarPlacement.OnBar
+            query {
+                mimeType: "text/plain"
+                invokeActionId: "bb.action.SHARE"
+            }
+            onTriggered: {
+                data = sp_myObj.post_title + "\n" + sp_myObj.link;
+            }
+        }
+    ]
     
     
     titleBar: TitleBar {
@@ -115,36 +128,13 @@ Page {
                 rightPadding: 15
                 leftPadding: 15
                 
-                
-                TextArea {
-                    backgroundVisible: false
-                    verticalAlignment: VerticalAlignment.Fill
-                    topMargin: 30
-                    bottomMargin: 30
-                    leftMargin: 30
-                    rightMargin: 30
-                    editable: false
-                    
-                    
-                    maxWidth: 738
-                    preferredWidth: 738
-                    
-                    id: cnt
-                    textFormat: TextFormat.Html
-                    textStyle.base: SystemDefaults.TextStyles.BodyText
-                    visible: !sp.show_img
-                    textStyle.textAlign: TextAlign.Justify
-                    textFit {
-                        minFontSizeValue: 1
-                        maxFontSizeValue: 10
-                    }
-                
-                }
                 WebView {
                     id: webView
-                    maxWidth: 738
                     preferredWidth: 738
-                    visible: sp.show_img
+                	settings.activeTextEnabled: true
+                	settings.defaultFontSize: 18
+                	settings.imageDownloadingEnabled: true
+                 	settings.textAutosizingEnabled: true
             	}
             }
         }

@@ -24,6 +24,19 @@ Page {
             vcind.stop();
     }
     
+    actions: [
+        InvokeActionItem {
+            ActionBar.placement: ActionBarPlacement.OnBar
+            query {
+                mimeType: "text/plain"
+                invokeActionId: "bb.action.SHARE"
+            }
+            onTriggered: {
+                data = vc_infos.post_title + "\n" + vc_infos.link
+            }
+        }
+    ]
+    
     content: Container {
         horizontalAlignment: HorizontalAlignment.Center
         verticalAlignment: VerticalAlignment.Top

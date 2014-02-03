@@ -35,6 +35,7 @@ Page {
                 mp_ci.open();
             }
         }
+        
     ]
     
     actions: [
@@ -92,6 +93,21 @@ Page {
         } else console.log("wrg : smtg wrong"); /* TODO */
         
         wpu.resetRes();
+    }
+    
+    paneProperties: NavigationPaneProperties {
+        backButton: ActionItem {
+            onTriggered: {
+                if ( postcontent.text.length > 0 )
+                {
+                    warningDialog.show();
+                } else {
+                    if ( !post_showpage )
+                    	navpostpane.pop();
+                    else navpagepane.pop();
+                }
+            }
+        }
     }
 
 

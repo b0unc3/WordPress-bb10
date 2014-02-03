@@ -71,18 +71,6 @@ Page {
     }
 
     attachedObjects: [
-        ComponentDefinition {
-            id: post_showPost
-            source: "showPost.qml"
-        },
-        ComponentDefinition {
-            id: post_makePost
-            source: "makePost.qml"
-        },
-        ComponentDefinition {
-            id: post_editPost
-            source: "editpost.qml"
-        },
         CustomIndicator {
             id: post_ci_pl
         },

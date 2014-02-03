@@ -82,6 +82,7 @@ public:
 	Q_INVOKABLE bool blogsInfo();
 	Q_INVOKABLE void getBlogsInfo();
 	Q_INVOKABLE void setCurrentBlog(QString, QString);
+	Q_INVOKABLE QString getCurrentBlog();
 	Q_INVOKABLE bool info_registered();
 	Q_INVOKABLE QMap<QString, QVariant> getBI();
 
@@ -103,7 +104,7 @@ private:
 	QSqlDatabase _db;
 
 
-	int getPosition();
+	int getPosition();				//<--- TBR
 	QString sanitize(QString);
 	bool validate(QString);
 	void getRegisteredData();

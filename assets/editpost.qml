@@ -6,6 +6,7 @@ Page {
     
     property string post_id;
     property variant pinfos
+    property bool textHasChanged : true;
 
     property bool post_showpage;
     
@@ -35,6 +36,21 @@ Page {
         } else {
             pinfos = ep_a;
             epind.stop();
+        }
+    }
+    
+    paneProperties: NavigationPaneProperties {
+        backButton: ActionItem {
+            onTriggered: {
+                if ( textHasChanged )
+                {
+                    warningDialog.show();
+                } else {
+                    if ( !post_showpage )
+                        navpostpane.pop();
+                    else navpagepane.pop();
+                }
+            }
         }
     }
     
@@ -126,6 +142,9 @@ Page {
                 id: pcontent
                 preferredHeight: 300
                 text: (pinfos) ? qsTr(pinfos.post_content) : ""
+                onTextChanged: {
+                    textHasChanged = !textHasChanged;
+                }
             }
             /*
              * ***FIXME****

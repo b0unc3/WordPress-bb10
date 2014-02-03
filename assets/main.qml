@@ -37,10 +37,6 @@ TabbedPane {
             source: "postslist.qml"
         },
         ComponentDefinition {
-            id: pagesList
-            source: "postslist.qml"
-        },
-        ComponentDefinition {
             id: loginPage
             source: "Login.qml"
         },
@@ -51,6 +47,33 @@ TabbedPane {
         ComponentDefinition {
             id: commentsList
             source: "commentslist.qml"
+        },
+        /* post */
+        
+        ComponentDefinition {
+            id: post_showPost
+            source: "showPost.qml"
+        },
+        ComponentDefinition {
+            id: post_makePost
+            source: "makePost.qml"
+        },
+        ComponentDefinition {
+            id: post_editPost
+            source: "editpost.qml"
+        },
+        SystemDialog {
+            id: warningDialog
+            title: "Warning"
+            body: "Continue and you'll lose your changes"
+            onFinished: {
+                if (warningDialog.result == SystemUiResult.ConfirmButtonSelection)
+                {
+                    if ( tabbedPane.activeTab == postsTab )
+                        navpostpane.pop();
+                    else navpagepane.pop();
+                }
+            }
         }
     ]
     
@@ -97,12 +120,11 @@ TabbedPane {
                 tabbedPane.remove(loginregisterTab);
                 tabbedPane.showTabsOnActionBar = false;
                 tabbedPane.peekEnabled = true;
-
+                
                 var newPage = postsList.createObject();
                 newPage.post_showpage = false;
                 navpostpane.push(newPage);
                 newPage.post_loadData();
-
             }
         }
     }
@@ -135,6 +157,7 @@ TabbedPane {
         }
 
         onTriggered: {
+            console.log("here we are");
             if (navpagepane.count() > 0) {
                 for (var i = 0; i < navpagepane.count(); i ++) 
                 	navpagepane.remove(navpostpane.at(i));
@@ -211,6 +234,53 @@ TabbedPane {
 
         NavigationPane {
             id: navpagepane
+            
+            onPopTransitionEnded: {
+                
+                if ( page )
+                    page.destroy();
+                
+                if (navpagepane.firstPage) {
+                    navpagepane.firstPage.post_restoreItems()
+                } else {
+                    var post_ = postsList.createObject();
+                    post_.post_showpage = true;
+                    navpagepane.push(post_);
+                    post_.post_loadData();
+                
+                }
+            }
+        
+        }
+        
+        onTriggered: {
+            if (navpostpane.count() > 0) {
+                for (var i = 0; i < navpostpane.count(); i ++) 
+                navpostpane.remove(navpagepane.at(i));
+            }
+            if ( navpostpane.top ) {
+                navpostpane.remove(navpostpane.top);
+            }
+            if (navpagepane.count() == 0) {
+                var newPage_post_ = postsList.createObject();
+                newPage_post_.post_showpage = true;
+                navpagepane.push(newPage_post_);
+                newPage_post_.post_loadData();
+            } else { 
+                if ( navpagepane.firstPage )
+                {
+                    navpagepane.firstPage.post_loadData();
+                } else {
+                    var post_p = postsList.createObject();
+                    navpagepane.push(post_p);
+                    post_p.post_showpage = true;
+                    post_p.post_loadData();
+                }
+            }
+        
+        }
+        /*
+
 
             onPopTransitionEnded: {
                 if (page) 
@@ -255,6 +325,7 @@ TabbedPane {
             }
 
         }
+*/
     }
 }
 

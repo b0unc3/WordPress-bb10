@@ -38,7 +38,7 @@ Page {
     function moveOn()
     {
         navigationPane.mb = true;
-            navigationPane.pop();
+        navigationPane.pop();
     }
     
     onMystrChanged: {

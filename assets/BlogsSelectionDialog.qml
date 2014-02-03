@@ -13,13 +13,23 @@ Dialog {
     {
         bdd.removeAll();
         var val = wpu.getBI();
+        var cb  = wpu.getCurrentBlog();
+        var bi = cb.split("-");
         for (var event in val) {
             var dataCopy = val[event]
 
-	    var option = optionControlDefinition.createObject();
-            option.value = qsTr(event);
-            option.text = qsTr(val[event]);
-            bdd.add(option);
+			if ( event != "" && val[event] != "" )
+			{
+			    console.log("event = " + event);
+			    console.log("val[event] = " + val[event]);
+	   	 		var option = optionControlDefinition.createObject();
+            	option.value = qsTr(event);
+            	option.text = qsTr(val[event]);
+            	if ( event == bi[0] && val[event] == bi[1])
+            		option.selected = true;
+            		
+            	bdd.add(option);
+            }
         }
     }
     
@@ -59,7 +69,16 @@ Dialog {
     }
 
 	onOpened: {
-        	getRegisteredBlogs();
+        getRegisteredBlogs();
+    }
+	onClosed: {
+        if ( navcommentspane.firstPage )
+                navcommentspane.firstPage.comment_restoreItems()
+        else if ( navpostpane.firstPage )
+                navpostpane.firstPage.post_loadData();
+        else if ( navpagepane.firstPage )
+            	navpagepane.firstPage.post_loadData();
+        
     }
 }
 
