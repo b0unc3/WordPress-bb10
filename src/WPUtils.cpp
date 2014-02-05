@@ -8,6 +8,18 @@
 
 #include <QSettings>
 
+/* crypt/decrypt stuff */
+#include <huaes.h>
+#include <sbreturn.h>
+#include <hurandom.h>
+#include <string.h>
+
+#include "AESParams.hpp"
+#include "AESKey.hpp"
+#include "DRBG.hpp"
+#include "SBError.hpp"
+/*********************/
+
 
 const QString WPUtils::dbName = "wpbb10.db";
 
@@ -20,6 +32,20 @@ WPUtils::WPUtils(QObject *parent)
 		SqlDataAccess sda(home.absoluteFilePath(dbName));
 		sda.execute("CREATE TABLE userinfo(blogid TEXT, id INTEGER PRIMARY KEY, username TEXT, password BLOB, xmlrpc BLOB);");
 	}
+	/*
+	 * load crypt/decrypt stuff
+	 */
+	QSettings settings;
+	if (!settings.contains("key")) {
+		settings.setValue("key",generate());
+	}
+	if (!settings.contains("iv")) {
+		settings.setValue("iv",generate());
+	}
+	_key = settings.value("key").toString();
+	_iv = settings.value("iv").toString();
+	/*****/
+
 	_position = 0; // <<== WTF?
 	_info_registered = true;
 	_db = QSqlDatabase::addDatabase("QSQLITE");
@@ -41,6 +67,194 @@ WPUtils::~WPUtils() {
 	_db.close();
 }
 
+/*
+ * crypt/decrypt stuff
+ * grabbed from : https://github.com/blackberry/Cascades-Community-Samples/tree/master/AESCryptoDemo
+ *
+ */
+
+QString WPUtils::generate() {
+	DRBG drbg(globalContext);
+	QByteArray buffer(16, 0);
+	int rc = drbg.getBytes(buffer);
+	if (rc != SB_SUCCESS) {
+		qDebug() << QString("Could not generate random bytes %1").arg(SBError::getErrorText(rc));
+		return "";
+	}
+	return toHex(buffer);
+}
+
+void WPUtils::pad(QByteArray & in) {
+	int padLength = 16 - (in.length() % 16);
+	for (int i = 0; i < padLength; ++i) {
+		in.append((char) padLength);
+	}
+}
+
+QString WPUtils::encrypt(QString s) {
+	QByteArray in(s.toUtf8());// plainText().toUtf8());
+	pad(in);
+	QByteArray out(in.length(), 0);
+
+	if (crypt(true, in, out)) {
+		//setCipherText(toHex(out));
+		//return true;
+		return toHex(out);
+	}
+	return "";//false;
+}
+
+bool WPUtils::crypt(bool isEncrypt, const QByteArray & in,
+		QByteArray & out) {
+	QByteArray key, iv;
+	QString fail;
+
+	if (!fromHex(_key, key)) {
+		fail += "Key is not valid hex. ";
+	}
+	if (!fromHex(_iv, iv)) {
+		fail += "IV is not valid hex. ";
+	}
+
+	if (!fail.isEmpty()) {
+		qDebug() << "fail = " << fail;
+		//toast(fail);
+		return false;
+	}
+
+	AESParams params(globalContext);
+	if (!params.isValid()) {
+		//toast(
+		qDebug () << "fails = " << QString("Could not create params. %1").arg(SBError::getErrorText(params.lastError()));
+		return false;
+	}
+
+	AESKey aesKey(params, key);
+	if (!aesKey.isValid()) {
+		qDebug() << "failes = " <<  QString("Could not create a key. %1").arg(SBError::getErrorText(aesKey.lastError()));
+		return false;
+	}
+
+	int rc;
+	if (isEncrypt) {
+		rc = hu_AESEncryptMsg(params.aesParams(), aesKey.aesKey(), iv.length(),
+				(const unsigned char*) iv.constData(), in.length(),
+				(const unsigned char *) in.constData(),
+				(unsigned char *) out.data(), globalContext.ctx());
+	} else {
+		rc = hu_AESDecryptMsg(params.aesParams(), aesKey.aesKey(), iv.length(),
+				(const unsigned char*) iv.constData(), in.length(),
+				(const unsigned char *) in.constData(),
+				(unsigned char *) out.data(), globalContext.ctx());
+	}
+	if (rc == SB_SUCCESS) {
+		return true;
+	}
+
+	//toast
+	qDebug() << QString("Crypto operation failed. %1").arg(SBError::getErrorText(rc));
+	return false;
+
+}
+
+QString WPUtils::decrypt(QString d) {
+	QByteArray in;
+	if (!fromHex(d, in)) {
+		//toast
+		qDebug() << "Cipher text is not valid hex";
+		return false;
+	}
+	QByteArray out(in.length(), 0);
+
+	if (crypt(false, in, out)) {
+		if (removePadding(out)) {
+			QString toUse(QString::fromUtf8(out.constData(), out.length()));
+			return toUse;
+			//return true;
+		}
+	}
+	return "";//false;
+}
+
+char WPUtils::nibble(char c) {
+	if (c >= '0' && c <= '9') {
+		return c - '0';
+	} else if (c >= 'a' && c <= 'f') {
+		return c - 'a' + 10;
+	} else if (c >= 'A' && c <= 'F') {
+		return c - 'A' + 10;
+	}
+	return -1;
+}
+
+QString WPUtils::toHex(const QByteArray & in) {
+	static char hexChars[] = "0123456789abcdef";
+
+	const char * c = in.constData();
+	QString toReturn;
+	for (int i = 0; i < in.length(); ++i) {
+		toReturn += hexChars[(c[i] >> 4) & 0xf];
+		toReturn += hexChars[(c[i]) & 0xf];
+	}
+
+	return toReturn;
+}
+
+bool WPUtils::fromHex(const QString in, QByteArray & toReturn) {
+	QString temp(in);
+	temp.replace(" ","");
+	temp.replace(":","");
+	temp.replace(".","");
+	QByteArray content(temp.toLocal8Bit());
+
+	const char * c(content.constData());
+
+	if (content.length() == 0 || ((content.length() % 2) != 0)) {
+		return false;
+	}
+
+	for (int i = 0; i < content.length(); i += 2) {
+		char a = c[i];
+		char b = c[i + 1];
+		a = nibble(a);
+		b = nibble(b);
+		if (a < 0 || b < 0) {
+			toReturn.clear();
+			return false;
+		}
+		toReturn.append((a << 4) | b);
+	}
+	return true;
+}
+
+bool WPUtils::removePadding(QByteArray & out) {
+	char paddingLength = out[out.length() - 1];
+	if (paddingLength < 1 || paddingLength > 16) {
+		//toast
+		qDebug() << "Invalid padding length. Were the keys good?";
+		out.clear();
+		return false;
+	}
+	if (paddingLength > out.length()) {
+		//toast
+		qDebug() << "Padding is claiming to be longer than the buffer!";
+		out.clear();
+		return false;
+	}
+	for (int i = 1; i < paddingLength; ++i) {
+		char next = out[out.length() - 1 - i];
+		if (next != paddingLength) {
+			qDebug()  << "Not all padding bytes are correct!";
+			out.clear();
+			return false;
+		}
+	}
+	out.remove(out.length() - paddingLength, paddingLength);
+	return true;
+}
+
+/*************************************************************/
+
 void WPUtils::getRegisteredData()
 {
 	QSqlQuery q(_db);
@@ -55,7 +269,7 @@ void WPUtils::getRegisteredData()
 	//*for* sure there is only - 1 - record
 	q.next();
 	_username = q.value(2).toString();
-	_password = q.value(3).toString();
+	_password = decrypt(q.value(3).toString()); //<--- decrypt
 	QString bi = q.value(0).toString();
 	QString xr = q.value(4).toString();
 
@@ -154,8 +368,8 @@ void WPUtils::setBlogsInfo(QString bid, QString burl)
 		qDebug() << "inserting" << _blogid << _endpoint;
 		query.prepare("INSERT INTO userinfo (blogid,username,password,xmlrpc) VALUES (:blogid, :username, :password, :xmlrpc)");
 		query.bindValue(":blogid", _blogid);
-		query.bindValue(":username", _username);
-		query.bindValue(":password", _password);
+		query.bindValue(":username", _username); // <-- crypt
+		query.bindValue(":password", encrypt(_password));
 		query.bindValue(":xmlrpc", _endpoint);
 		query.exec();
 	} else {
@@ -396,9 +610,12 @@ void WPUtils::getBlogs(QString u, QString p, QString blog_address)
 	}
 }
 
+/* not yet used
+ *
+ *
 void WPUtils::getCategories()
 {
-	/* not yet used */
+
 	_xml.clear();
 	QDomDocument doc;
 	QDomProcessingInstruction init = doc.createProcessingInstruction("xml version=\"1.0\"", "encoding=\"UTF-8\"");
@@ -462,12 +679,13 @@ void WPUtils::getCategories()
 	url.setUrl(_endpoint);
 	QNetworkRequest request(url);
 	int cmd = 0;
-	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd)); /* not sure */
+	request.setAttribute(QNetworkRequest::Attribute(QNetworkRequest::User + 1), QVariant((int) cmd));
 	request.setRawHeader("User-Agent", "wp-bb10/0.0.1");
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml");
 
 	manager->post(request,_xml);
 }
+*/
 
 void WPUtils::replyFinished(QNetworkReply *rep)
 {
@@ -493,14 +711,6 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 	if ( !ret.isEmpty() )
 		qDebug() << "reading " << ret; //rep->readAll();
 	else qDebug() << "ret empty -> error handling /*TODO*/";
-
-	QFile flog(QDir::currentPath() + "/shared/documents/dwplog");
-	//QFile flog("/tmp/wplog");
-	flog.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-	QTextStream out(&flog);
-	out << "FUNCTION :  replyFinished() ";
-	out << "reply = " << ret;
-	flog.close();
 
 	QString _current_name = "";
 
