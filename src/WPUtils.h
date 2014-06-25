@@ -61,6 +61,7 @@ public:
 
 
 		WPUtils(QObject *parent = 0);
+		void init();
 		virtual ~WPUtils();
 
 		Q_INVOKABLE void buildWPXML(QString, bool, QStringList, QStringList, QStringList, QStringList);
@@ -68,6 +69,7 @@ public:
 		Q_INVOKABLE void getBlogs(QString, QString, QString);
 
 		Q_INVOKABLE void setBlogsInfo(QString,QString);
+		Q_INVOKABLE bool deleteBlog(QString, QString);
 
 	//	Q_INVOKABLE void getCategories(); // <-- unused
 
@@ -75,12 +77,16 @@ public:
 		Q_INVOKABLE bb::cascades::GroupDataModel *setModel(QByteArray); /* should be getModel, since the model is setted in another func */
 		QString searchEndPoint(QString);
 
+
 		/* maybe temporary */
 		Q_INVOKABLE QMap<QString, QVariant> getRes() { return res; }
 		Q_INVOKABLE void resetRes() { res.clear(); }
 		Q_INVOKABLE void setUsername(QString u) { _username = u; }
 		Q_INVOKABLE void setPassword(QString p) { _password = p; }
+		Q_INVOKABLE QString getUsername() { return _username; }
+		Q_INVOKABLE QString getPassword() { return _password; }
 
+		Q_INVOKABLE bool deleteData();
 		Q_INVOKABLE void setPosition(int p) { _position = p; }
 		Q_INVOKABLE bool blogsInfo();
 		Q_INVOKABLE void getBlogsInfo();
@@ -135,7 +141,7 @@ private:
 
 
 	signals:
-		void dataReady(QByteArray); //QVariant);//QString);
+		void dataReady(QVariantMap&); //(QByteArray); //QVariant);//QString);
 
 		void dataReady_getUsersBlogs();
 		void dataReady_getBlogs(QByteArray);

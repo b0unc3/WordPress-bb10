@@ -45,7 +45,13 @@ Page {
             wpu.setUsername(usr.text);
             wpu.setPassword(pwd.text);
             
-            navigationPane.pop();
+            if ( navigationPane ) 
+            	navigationPane.pop();
+            
+            if ( settPane )
+            	settPane.pop();
+            
+            //else tabbedPane.setActiveTab = postsTab;
             /*
              var ppost_ = polist.createObject();
              ppost_.post_showpage = false;

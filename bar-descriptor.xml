@@ -1,72 +1,81 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!--
-  
-   Copyright (c) 2011, 2012, 2013 Research In Motion Limited.
-  
+
+   Copyright (c) 2011-2013 BlackBerry Limited.
+
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-  
+
    http://www.apache.org/licenses/LICENSE-2.0
-  
+
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-  
+
 -->
 <qnx xmlns="http://www.qnx.com/schemas/application/1.0">
 
-<!-- BlackBerry Tablet OS application descriptor file.
+<!-- BlackBerry 10 application descriptor file.
 
-    Specifies parameters for identifying, installing, and launching native applications on BlackBerry Tablet OS.
+    Specifies parameters for identifying, installing, and launching native applications on BlackBerry 10.
 
 -->
 
-    <!-- A universally unique application identifier. Must be unique across all BlackBerry Tablet OS applications.
+    <!-- A universally unique application identifier. Must be unique across all BlackBerry 10 applications.
          Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-    <id>WordPress</id>
+    <id>WordPressMobile</id>
 
-    <!-- The name that is displayed in the BlackBerry Tablet OS application installer. 
+    <!-- The name that is displayed in the BlackBerry 10 application installer.
          May have multiple values for each language. See samples or xsd schema file. Optional. -->
-    <name>WordPress</name>
-    
-    <!-- A string value of the format <0-999>.<0-999>.<0-999> that represents application version which can be used to check for application upgrade. 
+    <name>
+       Client for WordPress
+       <text xml:lang="it">Client per WordPress</text>
+       <text xml:lang="en">Client for WordPress</text>
+       <text xml:lang="en-CA">Client for WordPress</text>
+       <text xml:lang="en-GB">Client for WordPress</text>
+       <text xml:lang="en-US">Client for WordPress</text>
+    </name>
+
+    <!-- A string value of the format <0-999>.<0-999>.<0-999> that represents application version which can be used to check for application upgrade.
          Values can also be 1-part or 2-part. It is not necessary to have a 3-part value.
          An updated version of application must have a versionNumber value higher than the previous version. Required. -->
-    <versionNumber>1.0.0</versionNumber>
+    <versionNumber>1.2.7</versionNumber>
+    <packageLocale>it,en,en-CA,en-GB,en-US</packageLocale>
 
-    <!-- Fourth digit segment of the package version. First three segments are taken from the 
+    <!-- Fourth digit segment of the package version. First three segments are taken from the
          <versionNumber> element.  Must be an integer from 0 to 2^16-1 -->
-    <buildId>1</buildId>
-                 
+    <buildId>2</buildId>
+
     <!-- A string value (such as "v1", "2.5", or "Alpha 1") that represents the version of the application, as it should be shown to users. Optional. -->
     <!-- <versionLabel></versionLabel> -->
 
-    <!-- Description, displayed in the BlackBerry Tablet OS application installer.
+    <!-- Description, displayed in the BlackBerry 10 application installer.
          May have multiple values for each language. See samples or xsd schema file. Optional. -->
-    <description>The WordPress mobile app for BlackBerry 10 devices.</description>
+    <description>
+       WordPress client for BlackBerry 10 devices
+       <text xml:lang="it">WordPress client per dispositivi BlackBerry 10.</text>
+       <text xml:lang="en">WordPress client for BlackBerry 10 devices</text>
+       <text xml:lang="en-CA">WordPress client for BlackBerry 10 devices</text>
+       <text xml:lang="en-GB">WordPress client for BlackBerry 10 devices</text>
+       <text xml:lang="en-US">WordPress client for BlackBerry 10 devices</text>
+    </description>
 
     <!-- Copyright information. Optional. -->
     <!-- <copyright></copyright> -->
 
     <!--  Name of author which is used for signing. Must match the developer name of your development certificate. -->
     <author>Daniele (b0unc3) Maio</author>
-    <authorId>gYAAgDgPZJ7fUOQgacNxC0t_Vyw</authorId>
+    <authorId>gYAAgDAaTvBF9P4azRf3ADcRpn4</authorId>
+    <splashScreens>
+       <image>splashscreen-1024600.png</image>
+       <image>splashscreen-7201280.png</image>
+       <image>splashscreen720720.png</image>
+       <image>splashscreen-1280768.png</image>
+    </splashScreens>
     
-    <!--  Unique author ID assigned by signing authority. Required if using debug tokens. -->
-    <!-- <authorId>ABC1234YjsnUk235h</authorId> -->
-   
-    <initialWindow>
-        <aspectRatio>portrait</aspectRatio>
-        <autoOrients>false</autoOrients>
-        <systemChrome>none</systemChrome>
-        <transparent>false</transparent>
-    </initialWindow>
-    
-    <!--  The category where the application appears. Either core.games or core.media. -->
-    <category>core.games</category>
     <configuration name="Device-Debug">
        <platformArchitecture>armle-v7</platformArchitecture>
        <asset path="arm/o.le-v7-g/wp_bb10" entry="true" type="Qnx/Elf">wp_bb10</asset>
@@ -84,30 +93,40 @@
        <platformArchitecture>x86</platformArchitecture>
        <asset path="x86/o-g/wp_bb10" entry="true" type="Qnx/Elf">wp_bb10</asset>
     </configuration>
-    
-    <!--  The icon for the application -->
+
+    <!--  Unique author ID assigned by signing authority. Required if using debug tokens. -->
+    <!-- <authorId>ABC1234YjsnUk235h</authorId> -->
+
+    <initialWindow>
+        <aspectRatio>portrait</aspectRatio>
+        <autoOrients>false</autoOrients>
+        <systemChrome>none</systemChrome>
+        <transparent>false</transparent>
+    </initialWindow>
+
+    <!--  The icon for the application, which should be 114x114. -->
     <icon>
         <image>icon.png</image>
     </icon>
 
     <asset path="icon.png">icon.png</asset>
     <asset path="assets">assets</asset>
-    
+
     <!-- Locale support -->
     <asset path="translations" dest="qm">
         <include name="*.qm"/>
     </asset>
-    
-    
-    <asset path="assets/images/wplogo.png">assets/wplogo.png</asset>
-    <!-- <asset path="assets/images/rotate.png">assets/refresh.png</asset> -->
-    <asset path="assets/images/posts.png">assets/posts.png</asset>
-    
-    <!-- Request permission to execute native code.  Required for native applications. -->
+    <asset path="assets/images/splashscreen-1024600.png">splashscreen-1024600.png</asset>
+    <asset path="assets/720x1280/images/splashscreen-7201280.png">splashscreen-7201280.png</asset>
+    <asset path="assets/720x720/images/splashscreen720720.png">splashscreen720720.png</asset>
+    <asset path="assets/768x1280/images/splashscreen-1280768.png">splashscreen-1280768.png</asset>
+
+	<!-- Request permission to execute native code.  Required for native applications. -->
     <permission system="true">run_native</permission>
+    <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib"/>
     <permission>access_shared</permission>
     <permission>access_internet</permission>
     <permission>use_camera</permission>
-    <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib"/>
+    
 
 </qnx>

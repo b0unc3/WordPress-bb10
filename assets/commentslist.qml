@@ -216,9 +216,9 @@ Page {
                             function getStatus(s)
                             {
                                 if ( s == "approve" )
-                                	return "<html><p style='color: green;'><b>" + s + "</b></p></html>";
+                                	return "<html><p style='color: green;'><b>Approved</b></p></html>";
                                 else if ( s == "hold" )
-                                	return "<html><p style='color: orange;'><b>" + s + "</b></p></html>";
+                                	return "<html><p style='color: orange;'><b>Pending</b></p></html>";
                                 else return s;
 
                             }

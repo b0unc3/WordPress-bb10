@@ -17,6 +17,14 @@ TabbedPane {
     Menu.definition: MenuDefinition {
         actions: [
             ActionItem {
+                id: info
+                title: qsTr("Info");
+                onTriggered: {
+                    infoToast.show();
+                }
+                
+            }/*,
+            ActionItem {
                 id: cb
                 title: qsTr("Change blog");
                 enabled: mbs || !wpu.blogsInfo()
@@ -24,7 +32,7 @@ TabbedPane {
                 onTriggered: {
                     bsdo.open();
                 }
-            }
+            }*/
         ]
     
     }
@@ -74,7 +82,14 @@ TabbedPane {
                     else navpagepane.pop();
                 }
             }
+        },
+        SystemToast {
+            id: infoToast
+            body: "Developer:\nDaniele (b0unc3) Maio\n\nWarranty:\nNo warranty. The app is provided as it is.\n\nLicense:\n OpenSource"
+            button.label: "Ok"
+            button.enabled: true
         }
+
     ]
     
     onCreationCompleted: {
@@ -94,6 +109,7 @@ TabbedPane {
     }
     Tab {
         id: loginregisterTab
+    
         NavigationPane {
             id: navigationPane
             peekEnabled: false
@@ -129,9 +145,164 @@ TabbedPane {
         }
     }
     Tab {
+        id: settingsTab
+        title: qsTr("Settings")
+        NavigationPane {
+            id: settPane
+        
+        	onPopTransitionEnded: {
+            	if ( page )
+            		page.destroy();
+            		
+            	if ( firstPage )
+            		firstPage.destroy(); 
+            }
+        Page {
+            id: theSettingPage
+            property bool mb: true;
+            titleBar: TitleBar {
+                title: qsTr("Settings")
+            }
+            function onDataReady()
+            {
+                var a = wpu.getRes();
+                if ( a['oneblog'] )
+                	mb = false
+            }
+            function getRegisteredBlogs()
+            {
+                bdd.removeAll();
+                var val = wpu.getBI();
+                var cb  = wpu.getCurrentBlog();
+                var bi = cb.split("-");
+                for (var event in val) {
+                    var dataCopy = val[event]
+                    
+                    if ( event != "" && val[event] != "" )
+                    {
+                        console.log("event = " + event);
+                        console.log("val[event] = " + val[event]);
+                        var option = optionControlDefinition.createObject();
+                        option.value = qsTr(event);
+                        option.text = qsTr(val[event]);
+                        if ( event == bi[0] && val[event] == bi[1])
+                            option.selected = true;
+                        
+                        bdd.add(option);
+                    }
+                }
+            }
+            
+            Container {
+                topPadding: 20
+                bottomMargin: 20
+                leftPadding: 20
+                rightMargin: 20
+                topMargin: 20
+                bottomPadding: 20
+                leftMargin: 20
+                rightPadding: 20
+                
+                layout: StackLayout { 
+                    
+                }
+                Label {
+                    text: "Change Blog"
+                }
+                DropDown {
+                    id: bdd
+                    enabled: !wpu.blogsInfo()
+                }
+                
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    text: qsTr("Done")
+                    enabled: !wpu.blogsInfo()
+                    onClicked: {
+                        /* set the new blog */
+                        wpu.setCurrentBlog(bdd.selectedOption.value, bdd.selectedOption.text);
+                    }
+                }
+                
+                Divider {
+                
+                }
+                
+                Divider {
+                
+                }
+                
+                Label {
+                    text: "Add Blog"
+                }
+                
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    text: qsTr("Add blog")
+                    enabled: theSettingPage.mb;
+                    onClicked: {
+                        bsdo.open();
+                    }
+                }
+                
+                Divider {
+                
+                }
+                
+                Label {
+                    text: "Remove blog"
+                }
+                
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    text: qsTr("Remove blog");
+                    enabled: theSettingPage.mb
+                }
+                
+                Divider {
+                
+                }
+                
+                Label {
+                    text: "Logout"
+                }
+                
+                Button {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    text: qsTr("Lougout");
+                    onClicked: {
+                        if ( wpu.deleteData() )
+                        {
+                        	console.log("logout ok");
+                        	//loginregisterTab.setEnabled(true);
+                     //   	tabbedPane.add(loginregisterTab)
+                     		var p = loginPage.createObject();
+                     		settPane.push(p)
+                     		settPane.backButtonsVisible = false;
+                     		
+                        	//tabbedPane.activePane = loginregisterTab; 
+                        	
+                        }
+                        else console.log("something wrong with logout");
+                    }
+                }
+            
+                
+                onCreationCompleted: {
+                    theSettingPage.getRegisteredBlogs();
+                    wpu.getBlogs(wpu.getUsername(), wpu.getPassword(), "");
+                    wpu.dataReady_getUsersBlogs.connect(theSettingPage.onDataReady);
+                }
+        }    
+            
+            }
+        }
+    }
+    Tab {
         id: postsTab
         title: qsTr("Posts")
         imageSource: "asset:///images/posts.png"
+        
 
         NavigationPane {
             id: navpostpane
@@ -139,7 +310,6 @@ TabbedPane {
             
 
             onPopTransitionEnded: {
-                
                 if ( page )
                 	page.destroy();
                 	

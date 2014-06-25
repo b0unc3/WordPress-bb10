@@ -25,6 +25,16 @@ const QString WPUtils::dbName = "wpbb10.db";
 
 WPUtils::WPUtils(QObject *parent)
 {
+	init();
+}
+
+WPUtils::~WPUtils() {
+	// TODO Auto-generated destructor stub
+	_db.close();
+}
+
+void WPUtils::init()
+{
 	QDir home = QDir::home();
 	QFile file(home.absoluteFilePath(dbName));
 	if (!file.exists() && file.open(QIODevice::ReadWrite) )
@@ -62,14 +72,9 @@ WPUtils::WPUtils(QObject *parent)
 		getRegisteredData();
 	}
 }
-WPUtils::~WPUtils() {
-	// TODO Auto-generated destructor stub
-	_db.close();
-}
-
 /*
  * crypt/decrypt stuff
- * grabbed from : https://github.com/blackberry/Cascades-Community-Samples/tree/master/AESCryptoDemo
+ * from : https://github.com/blackberry/Cascades-Community-Samples/tree/master/AESCryptoDemo
  *
  */
 
@@ -266,7 +271,7 @@ void WPUtils::getRegisteredData()
 	 * blogid - xmlrpc  <= multiple item separated by comma
 	 * TODO = create another table and link with foreign key
 	 */
-	//*for* sure there is only - 1 - record
+	//*for sure* there is only - 1 - record
 	q.next();
 	_username = q.value(2).toString();
 	_password = decrypt(q.value(3).toString()); //<--- decrypt
@@ -308,6 +313,18 @@ bool WPUtils::info_registered()
 	return (list.toList().size() > 0);
 }
 
+bool WPUtils::deleteData()
+{
+	QDir home = QDir::home();
+	bool ret = QFile::remove(home.absoluteFilePath(dbName));
+	_db.close();
+	init();
+
+	return ret;
+
+
+}
+
 int WPUtils::getPosition()
 {
 	return _position;
@@ -345,6 +362,27 @@ void WPUtils::getBlogsInfo()
 bool WPUtils::blogsInfo()
 {
 	return _blogs.isEmpty();
+}
+
+bool WPUtils::deleteBlog(QString bid, QString burl)
+{
+	//get current blog(s) from db
+	QSqlQuery q(_db);
+	q.exec("SELECT * FROM userinfo");
+	q.next();
+	QString bi = q.value(0).toString().replace(bid, "");
+	QString xr = q.value(4).toString().replace(burl, "");
+
+	QSqlQuery qu(_db);
+	qu.prepare("UPDATE userinfo SET blogid=:bi and url=:u");
+	qu.bindValue(":bi", bi);
+	qu.bindValue(":u", xr);
+	bool r = qu.exec();
+
+	q.clear();
+	qu.clear();
+
+	return r;
 }
 
 void WPUtils::setBlogsInfo(QString bid, QString burl)
@@ -685,7 +723,7 @@ void WPUtils::getCategories()
 
 	manager->post(request,_xml);
 }
-*/
+ */
 
 void WPUtils::replyFinished(QNetworkReply *rep)
 {
@@ -716,6 +754,7 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 
 	QXmlStreamReader xml(ret);
 
+	QList<QVariantMap> Entries;
 	int _struct_counter = 0;
 
 	while(!xml.atEnd() && !xml.hasError()) {
@@ -752,7 +791,7 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 						QDateTime date = QDateTime::fromString(theDate, "yyyyMMddTHH:mm:ss");
 						res["sortDate"] = date;
 						res["date"] = date.toString(Qt::SystemLocaleShortDate);
-						*/
+						 */
 					}
 					else res[_current_name] = xml.text().toString();
 
@@ -783,6 +822,15 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 				_res_bck.unite(res);
 				res.clear();
 			}
+			QVariantMap Entry;
+						foreach(const QXmlStreamAttribute &attr, xml.attributes()) {
+							qDebug() << "adding name = " << attr.name().toString() << " value = " << attr.value().toString();
+							Entry[attr.name().toString()] = attr.value().toString();
+						}
+						qDebug() << "adding name = " << xml.name().toString() << " and = " << xml.text().toString();
+						Entry[_current_name] = xml.text().toString();
+								//xml.text().toString();
+						Entries.append(Entry);
 
 		} else if ( token == QXmlStreamReader::EndElement )
 		{
@@ -808,20 +856,26 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 
 	QList<QVariant> one_blog = res.values("blogid");
 
-	if ( !one_blog.isEmpty() )
+	if ( !one_blog.isEmpty() && one_blog.size() == 1 )
 	{
 		qDebug() << "one blog = " << one_blog;
 		qDebug() << "size = " << QString::number(one_blog.size());
-		if ( one_blog.size() == 1 )
-		{
-			/* skip the blog selection */
-			qDebug() << "adding = " << one_blog[0].toString();
-			QList<QVariant> bu = res.values("xmlrpc");
-			setBlogsInfo(one_blog[0].toString(), bu[0].toString());
-			res["oneblog"] = 1;
-			//setBlogsInfo(one_blog[1], QString burl)
-		}
+		/* skip the blog selection */
+		qDebug() << "adding = " << one_blog[0].toString();
+		QList<QVariant> bu = res.values("xmlrpc");
+		setBlogsInfo(one_blog[0].toString(), bu[0].toString());
+		res["oneblog"] = 1;
+		//setBlogsInfo(one_blog[1], QString burl)
 	}
+
+	QVariantList QVList;
+
+    for(QVariantMap::const_iterator iter = res.begin(); iter != res.end(); ++iter) {
+    	qDebug() << "traversing map ";
+    	qDebug() << iter.key() << iter.value();
+    }
+
+	qDebug() << "stuff coming : " << Entries;
 
 	if(QObject* pObject = sender()) {
 		QString name = pObject->objectName();
@@ -830,9 +884,9 @@ void WPUtils::replyFinished(QNetworkReply *rep)
 			QString methodName = "dataReady_" + name;
 			const char *x = methodName.toStdString().c_str();
 			QMetaObject::invokeMethod(this, x, Qt::DirectConnection);//, Qt::DirectConnection);
-		} else emit dataReady(ret);
+		} else emit dataReady(res);//QVList);
 
-	} else emit dataReady(ret);
+	} else emit dataReady(res);
 }
 
 /* no need to pass a qbytearray, model filled in the replyFinished */
